@@ -1,0 +1,80 @@
+
+% We use Palatino as the roman face.
+% Monospaced font is still CM
+% (fits well and is the most beautiful tt font anyway.)
+\RequirePackage[T1]{fontenc}
+\RequirePackage{textcomp}
+%\RequirePackage[osf]{mathpazo}
+%\RequirePackage{mathpazo}
+\renewcommand{\rmdefault}{pgyj}
+
+% All the stuff we need ...
+\RequirePackage{color}
+\RequirePackage{graphicx}
+%\RequirePackage{makeidx}
+
+\IfFileExists{url.sty}{\RequirePackage{url}}
+                      {\newcommand{\url}{\texttt}}
+
+\def\thesong{}
+\def\thealbum{}
+
+\newcommand{\capssong}[1]{\textsc{\MakeLowercase{#1}}}
+\newcommand{\boldalbum}[1]{\textbf{#1}}
+
+\definecolor{songcolor}{rgb}{.3,.3,.4}
+
+\setlength{\parskip}{1ex}
+\setlength{\parindent}{0ex}
+
+\newcommand{\bobrule}{\hrulefill}
+%\newcommand{\bobrule}{\rule{\textwidth}{0.2pt}}
+
+\newcommand{\bobimage}[1]{\includegraphics[width=1.0\textwidth]{#1}}
+
+% To get around special characters
+\newcommand{\songlbl}[2]{
+  \newpage
+  \def\thesong{#1}
+  \label{song:#2}
+  \section*{#1}
+  \index{\protect\capssong{#1}}
+}
+
+% Misc Stuff
+\newcommand{\songversion}[1]{\subsubsection*{#1}}
+
+\newcommand{\songversionlbl}[2]{
+  \subsubsection*{#1}
+  \label{Song:#2}
+}
+
+\newcommand{\remark}[1]{
+  \subsubsection*{#1}
+  \label{Remark:\thealbum:#1}
+}
+
+\newcommand{\songref}[1]{\capssong{#1}: Page \pageref{song:#1}}
+\newcommand{\songlblref}[2]{\capssong{#1}: Page \pageref{song:#2}}
+
+% For the tab Environment
+\newcommand{\bs}{\ensuremath{\backslash}}
+\newcommand{\amp}{\&}
+
+% For the songs -- otherwise the Index gets confused.
+% The command must be \protected anyway...
+\newcommand{\excl}{!}
+
+%\newcommand{\outtakearrow}{$\rightarrow$}
+\newcommand{\referencearrow}{$\hookrightarrow$}
+
+\newenvironment{pre}
+   {\begin{list}{}{
+     \raggedright
+     \raggedbottom
+     \setlength{\leftmargin}{0pt}
+     \setlength{\parsep}{3ex}
+     \normalfont\ttfamily
+     \small}%
+    \item[]}
+   {\end{list}}
