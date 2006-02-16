@@ -1,0 +1,82 @@
+#!/usr/bin/env ruby
+# -*- ruby -*-
+
+class Seal
+
+  def initialize( options )
+    @options = options
+  end
+
+  def tex
+    Dir::chdir( @options[ :directory ] )
+
+    commands = [ "latex mbpbook", 
+                 "makeindex mbpbook",
+                 "latex mbpbook",
+                 "dvips mbpbook" ]
+    
+    begin
+      if @options[ :quiet ]
+        commands.each { |command| `#{command}` }
+      else
+        commands.each { |command| system( command ) }
+      end
+    rescue
+      
+    end
+  end
+  
+end
+
+if __FILE__ == $0
+  require 'optparse'
+  require 'lib/about'
+  
+  options = Hash.new
+  opts = OptionParser.new do |opts|
+    opts.banner = <<EOS
+seal #{Seal::VERSION} from #{Seal::DATE}
+Usage: seal-tex [options] [directory]
+
+seal-tex is a simple command line tool to TeX
+the Dylanchords LaTeX files
+
+Options:
+EOS
+
+    opts.version = Seal::VERSION
+
+    opts.on( "-v", "--[no-]verbose", "Write out what is going on" ) do |v|
+      options[ :quiet ] = !v
+    end
+    opts.on( "-q", "--[no-]quiet", "Don't write what is going on" ) do |q|
+      options[ :quiet ] = q
+    end
+
+    opts.on_tail # separator
+    opts.on_tail( "-h", "--help", "Show this message" ) do
+      puts opts
+      exit
+    end
+    opts.on_tail( "--copyright", "Show copyright (revised BSD License)" ) do
+      puts Seal::LICENSE
+      exit
+    end
+  end
+
+  begin
+    opts.parse!( ARGV )
+  rescue OptionParser::ParseError => error
+    puts error
+    exit( 1 )
+  end
+
+  options[ :directory ] = ARGV.shift||File::join( Dir::pwd, 'book' )
+
+  seal = Seal.new( options )
+
+  begin
+    seal.tex
+  rescue Interrupt
+  end
+end
