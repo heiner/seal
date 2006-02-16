@@ -158,9 +158,10 @@ module Converting
       when 'pre'
         ostring << convert_preformatted( child )
       when 'img'
-        # Does not work this way
-        url = child.attributes['src']
-        ostring << "\\bobimage{#{url}}"
+        image = child.attributes['src']
+        url_pdf = File::join( 'graphics', File::basename( image ) )
+        url_ps  = File::chopext( url_pdf ) + '.eps'
+        ostring << "\\image{#{url_pdf}}{#{url_ps}}"
       else
         raise ConversionError, "Unexpected tag #{child.name}"
       end
@@ -238,7 +239,7 @@ module Converting
       content.gsub!(' ', '~')
       content.gsub!( "\t", '~'*8 )
       if content.include?( "\n\n" )
-        $stderr << "\nEMPTY LINE IN TAB! File #{@istream.path}\n"
+        $stderr << "\nWARNING: empty line in tab.\nFile #{@istream.path}\n"
         content.gsub!( /\n\n+/, "\\end{pre}\\begin{pre}" )
       end
       content.gsub!( "\n", "\\\\\\*\n" ) # SIX backslashes needed
@@ -317,7 +318,9 @@ module Converting
                           [ '. . .', '\\ldots{}' ],
                           [ /(^|\W)'((?:[^']|\w'\w)+)'(\W|\Z)/,
                             "\\1`{}\\2'{}\\3" ], # "
-                          [ /"([^"]+)"/, "``{}\\1''{}" ] # "
+                          [ /"([^"]+)"/, "``{}\\1''{}" ], # "
+                          [ /(\W[ACDFG])\\#(?=\W|m)/i, "\\1$\\sharp$" ],
+                          [ /(\W[ABDFG])b(?=\W|m)/, "\\1$\\flat$" ]
                         ]
   
   def Converting::texify( string, cleanup=true )

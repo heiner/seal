@@ -29,7 +29,10 @@ class TestModuleConverting < Test::Unit::TestCase
       "`{}\\ldots{}and says ``{}revenge is mine''{}'{}" ],
     [ "(you can make that above \303\230strem \342\200\223 that's " \
         "\302\222Unicode\302\222)",
-      "(you can make that above {\\O}strem -- that's `{}Unicode'{})" ]
+      "(you can make that above {\\O}strem -- that's `{}Unicode'{})" ],
+    [ "Looking for an evil chord? Try Ab. Evil language? C# (<=>C#m).",
+      "Looking for an evil chord? Try A$\\flat$. Evil language? C$\\sharp$ (<=>C$\\sharp$m)." ],
+    [ "Open D tuning: D-A-d-f#-a-d'", "Open D tuning: D-A-d-f$\\sharp$-a-d'" ]
   ]
   
   def test_texify

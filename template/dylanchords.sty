@@ -4,6 +4,7 @@
 % (fits well and is the most beautiful tt font anyway.)
 \RequirePackage[T1]{fontenc}
 \RequirePackage{textcomp}
+\RequirePackage{ifpdf}
 %\RequirePackage[osf]{mathpazo}
 %\RequirePackage{mathpazo}
 \renewcommand{\rmdefault}{pgyj}
@@ -30,7 +31,13 @@
 \newcommand{\bobrule}{\hrulefill}
 %\newcommand{\bobrule}{\rule{\textwidth}{0.2pt}}
 
-\newcommand{\bobimage}[1]{\includegraphics[width=1.0\textwidth]{#1}}
+\newcommand{\image}[2]{%
+  \ifpdf
+    \includegraphics[width=1.0\textwidth]{#1}
+  \else
+    \includegraphics[width=1.0\textwidth]{#2}
+  \fi
+}
 
 % To get around special characters
 \newcommand{\songlbl}[2]{

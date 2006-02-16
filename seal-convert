@@ -106,18 +106,16 @@ EOS
     
     if File::exists?( dest )
       if @options[ :force ] or ask( "Directory `#{dest}' exists. Overwrite?" )
-        rm_rf( dest )
+        rm_rf( Dir::glob( File::join( dest, "*[^~]" ) ) )
       else
         puts 'Abort.'
         exit( 2 )
       end
+    else
+      mkdir( dest )
     end
 
-    mkdir( dest )
-
-    # copy only non-hidden files
-    template_files = File::join( RESIDENCE, "template", "*[^~]" )
-    cp( Dir::glob( template_files ), dest )
+    copy_dir( File::join( RESIDENCE, "template" ), dest )
 
     @data.each_key do |album|
       mkdir( File::join( dest, album ) )
@@ -133,6 +131,21 @@ EOS
 Typeset using \\LaTeX\\ on \\today.}
 \\end{flushleft}
 EOS
+    end
+  end
+
+  def copy_dir( src, dest )
+    # copies the *non-hidden contents* of src
+    # into dest
+    Dir::glob( File::join( src, "*[^~]" ) ).each do |src_entry|
+      dest_entry = File::join( dest, File::basename( src_entry ) )
+      
+      if File::directory?( src_entry )
+        mkdir dest_entry
+        copy_dir( src_entry, dest_entry )
+      else
+        copy( src_entry, dest_entry )
+      end
     end
   end
 

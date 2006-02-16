@@ -15,14 +15,24 @@ class Seal
                  "latex mbpbook",
                  "dvips mbpbook" ]
     
-    begin
-      if @options[ :quiet ]
-        commands.each { |command| `#{command}` }
-      else
-        commands.each { |command| system( command ) }
+#    begin
+    commands.each do |command|
+      run_command( command )
+      if not $?.success?
+        $stderr << "error: command `#{command}' failed\n"
+        exit( 1 )
       end
-    rescue
+    end
+#    rescue
       
+#    end
+  end
+
+  def run_command( command )
+    if @options[ :quiet ]
+      `#{command}`
+    else
+      system( command )
     end
   end
   
