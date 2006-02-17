@@ -11,11 +11,15 @@
 
 % All the stuff we need ...
 \RequirePackage{color}
+\RequirePackage{soul}
 \RequirePackage{graphicx}
 %\RequirePackage{makeidx}
 
 \IfFileExists{url.sty}{\RequirePackage{url}}
                       {\newcommand{\url}{\texttt}}
+
+% letterspacing command
+\sodef\ls{}{0.1em}{0.4em plus0.2em}{2em plus.1em minus .1em}
 
 \def\thesong{}
 \def\thealbum{}
