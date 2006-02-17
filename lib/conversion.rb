@@ -31,7 +31,7 @@ module Converting
     dest = File::join( dest_dir, basename + '.tex' )
 
     unless quiet
-      $stdout << "Converting #{Converting::nicepath(src)} ... "
+      $stdout << "Convert #{Converting::nicepath(src)} ... "
     end
     begin
       # maybe we want a zip file?
@@ -280,6 +280,7 @@ module Converting
     [ "\342\200\224", '---' ], # &#8212;
     [ "\342\200\234", '``' ],  # &#8220
     [ "\342\200\235", "''" ],  # &#8221;
+
     [ '~', '\\~{}' ], [ '$', '\\$'], [ '%', '\\%'],
     [ '_', '\\_'],    [ '#', '\\#'], [ '^', '\\^'],
 
@@ -306,6 +307,9 @@ module Converting
     ['&oslash;', '{\\o}'], ['&Oslash;', '{\\O}'], ['&aring;', '{\\aa}'],
     ['&Aring;', '{\\AA}'], ['&aelig;', '{\\ae}'], ['&AElig;', '{\\AE}'],
     ['&szlig;', '{\\ss}'], ['&ccedil;', '{\\c c}'], ['&Ccedil;', '{\\c C}'],
+
+    [ "\342\231\257", "$\\sharp$" ], # 0x266F == 9839 == `#'
+    [ "\342\231\255", "$\\flat$" ],  # 0x266D == 9837 == `b'
 
     # special (don't know why, but four backslashes are required!)
     [ '&', '\\\\&' ]
@@ -377,6 +381,17 @@ class SongConverter
   def SongConverter::simplify( title )
     title.downcase.gsub( /\\?[#&~]|\\ss/,'' )
   end
+
+  def SongConverter::song_type( path )
+    case path[-1]
+    when ?@
+      :reference
+    when ?*
+      :outtake
+    else
+      :normal
+    end
+  end
 end
 
 
@@ -397,6 +412,7 @@ class AlbumBuilder
     @destination = destination
     @number = number
     @songs = songs
+    @songtitles = {}
 
     convert_file( index_html, destination )
   end
@@ -447,15 +463,36 @@ EOS
     # (we could try to parse the index file by ourselves and find
     # out the songs, but we don't (Right now).)
 
+    outtake = false
     @songs.each do |song|
-      src = File::join( @source, song )
-      # we can't take simply @destination, because we have
-      # paths like 17_basement/../00_misc/trail_of_the_buffalo.tex
-      dest = File::dirname( File::join( @destination, song ) )
-      @songconverter.convert_file( src, dest )
-      title = @songconverter.songtitle
-      ref = SongConverter::simplify( title )
-      self << "\\pageref{song:#{ref}} & \\textsc{#{title}}\\tabularnewline\n"
+      src = File::expand_path( File::join( @source, song ) )
+      song_type = SongConverter::song_type( song )
+      already_converted = @songtitles.has_key?( src )
+
+      case song_type
+      when :normal
+        if already_converted
+          $stderr << "WARNING: #{song} is multiply addressed!"
+        else
+          convert_song( song )
+        end
+      when :outtake
+        if not outtake
+          self << "&\\tabularnewline\n"
+          outtake = true
+        end
+        if already_converted
+          self << format_songentry( src, "\\referencearrow" )
+        else
+          convert_song( song.chop )
+        end
+      when :reference
+        if already_converted
+          self << format_songentry( src )
+        else
+          convert_song( song.chop, "\\referencearrow" )
+        end
+      end
     end
     self << "\\end{tabular}\n\\end{flushright}\n\n\\newpage"
 
@@ -471,6 +508,26 @@ EOS
                          File::chopext( song ) )
       self << "\\input{#{path}}\n"
     end
+  end
+
+  def convert_song( song, prefix="" )
+    src = File::join( @source, song )
+    # we can't take simply @destination, because we have
+    # paths like 17_basement/../00_misc/trail_of_the_buffalo.tex
+    dest = File::dirname( File::join( @destination, song ) )
+    @songconverter.convert_file( src, dest )
+    title = @songconverter.songtitle
+    ref = SongConverter::simplify( title )
+
+    song_path = File::expand_path( src )
+    @songtitles[ song_path ] = title
+    self << format_songentry( song_path, prefix )
+  end
+
+  def format_songentry( song_path, prefix="" )
+    title = @songtitles[ song_path ]
+    ref = SongConverter::simplify( title )
+    "#{prefix}\\pageref{song:#{ref}} & \\textsc{#{title}}\\tabularnewline\n"
   end
 
   def format_release( strings )

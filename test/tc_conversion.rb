@@ -75,7 +75,9 @@ class TestModuleConverting < Test::Unit::TestCase
     [ "<h2>A BIGGER<br />\n<b>SURPRISE</b></h2>",
       "\\subsection*{A BIGGER\\\\ \\textbf{SURPRISE}}\n"],
     [ "<p>This is a &ldquo;paragraph&rdquo;, I said a <em>paragraph</em></p>",
-      "\nThis is a ``paragraph'', I said a \\emph{paragraph}\n" ]
+      "\nThis is a ``paragraph'', I said a \\emph{paragraph}\n" ],
+    [ "<p>&#9839;&#9837;</p>", "\n$\\sharp$$\\flat$\n" ]
+
   ]
   
   def test_tag_coversion

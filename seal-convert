@@ -31,7 +31,8 @@ class Seal
       index_html  = File::join( @options[ :source ], album, 'index.htm' )
       destination = File::join( @options[ :destination ], album )
       number += 1
-      songs = @data[ album ].select { |song| song[-1] != ?@ and song[-1] != ?* }
+      #songs = @data[ album ].select { |song| song[-1] != ?@ and song[-1] != ?* }
+      songs = @data[ album ]
 
       @albumbuilder.convert_album( index_html, destination, number, songs )
       index << "\\input{" << File::join( album, "index.tex" ) << "}\n"
@@ -40,10 +41,12 @@ class Seal
 
     index.close
 
+    require 'pp'; pp contents
     generate_toc( contents )
   end
 
   def generate_toc( contents )
+    # this code has BUGS, and it is UGLY AS HELL!!!
     toc = File::join( @options[:destination], 'contents.tex' )
     File::open( toc, "w" ) do |toc|
       toc << <<EOS
