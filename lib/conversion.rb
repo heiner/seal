@@ -239,7 +239,7 @@ module Converting
       content.gsub!(' ', '~')
       content.gsub!( "\t", '~'*8 )
       if content.include?( "\n\n" )
-        $stderr << "\nWARNING: empty line in tab.\nFile #{@istream.path}\n"
+        $stderr << "\nWARNING: empty line in tab.\nFile #{File::expand_path(@istream.path)}\n"
         content.gsub!( /\n\n+/, "\\end{pre}\\begin{pre}" )
       end
       content.gsub!( "\n", "\\\\\\*\n" ) # SIX backslashes needed
@@ -405,6 +405,7 @@ class AlbumBuilder
     @quiet = true
     @songconverter = SongConverter.new
     @songconverter.quiet = quiet
+    @songtitles = {}
   end
 
   def convert_album( index_html, destination, number, songs )
@@ -412,7 +413,6 @@ class AlbumBuilder
     @destination = destination
     @number = number
     @songs = songs
-    @songtitles = {}
 
     convert_file( index_html, destination )
   end
@@ -463,35 +463,36 @@ EOS
     # (we could try to parse the index file by ourselves and find
     # out the songs, but we don't (Right now).)
 
-    outtake = false
-    @songs.each do |song|
-      src = File::expand_path( File::join( @source, song ) )
-      song_type = SongConverter::song_type( song )
-      already_converted = @songtitles.has_key?( src )
+    inputs = []
 
-      case song_type
+    outtake_mode = false
+    @songs.each do |song|
+      key = File::basename( song, '.htm' )
+      already_converted = @songtitles.has_key?( key )
+
+      case SongConverter::song_type( song )
       when :normal
-        if already_converted
-          $stderr << "WARNING: #{song} is multiply addressed!"
-        else
-          convert_song( song )
-        end
+        prefix = ""
+        inputs << File::join( File::basename( @destination ),
+                              File::chopext( song ) )
       when :outtake
-        if not outtake
+        if not outtake_mode
           self << "&\\tabularnewline\n"
-          outtake = true
+          outtake_mode = true
         end
-        if already_converted
-          self << format_songentry( src, "\\referencearrow" )
-        else
-          convert_song( song.chop )
-        end
+        song.chop!
+        inputs << File::join( File::basename( @destination ),
+                              File::chopext( song ) )
+        prefix = ""
       when :reference
-        if already_converted
-          self << format_songentry( src )
-        else
-          convert_song( song.chop, "\\referencearrow" )
-        end
+        song.chop!
+        prefix = "\\referencearrow"
+      end
+
+      if already_converted
+        self << format_song_entry( key, prefix )
+      else
+        convert_song( song, prefix )
       end
     end
     self << "\\end{tabular}\n\\end{flushright}\n\n\\newpage"
@@ -503,9 +504,7 @@ EOS
     end
 
     self << "\\cleardoublepage\n"
-    @songs.each do |song|
-      path = File::join( File::basename( @destination ),
-                         File::chopext( song ) )
+    inputs.each do |path|
       self << "\\input{#{path}}\n"
     end
   end
@@ -519,13 +518,14 @@ EOS
     title = @songconverter.songtitle
     ref = SongConverter::simplify( title )
 
-    song_path = File::expand_path( src )
-    @songtitles[ song_path ] = title
-    self << format_songentry( song_path, prefix )
+    @songtitles[ File::basename( song, '.htm' ) ] = title
+    #self << format_song_entry( song_path, prefix )
+    ref = SongConverter::simplify( title )
+    self << "#{prefix}\\pageref{song:#{ref}} & \\textsc{#{title}}\\tabularnewline\n"
   end
 
-  def format_songentry( song_path, prefix="" )
-    title = @songtitles[ song_path ]
+  def format_song_entry( key, prefix="" )
+    title = @songtitles[ key ]
     ref = SongConverter::simplify( title )
     "#{prefix}\\pageref{song:#{ref}} & \\textsc{#{title}}\\tabularnewline\n"
   end

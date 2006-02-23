@@ -41,12 +41,10 @@ class Seal
 
     index.close
 
-    require 'pp'; pp contents
     generate_toc( contents )
   end
 
   def generate_toc( contents )
-    # this code has BUGS, and it is UGLY AS HELL!!!
     toc = File::join( @options[:destination], 'contents.tex' )
     File::open( toc, "w" ) do |toc|
       toc << <<EOS
@@ -56,44 +54,24 @@ class Seal
 &&&&\\tabularnewline
 &&&&\\tabularnewline
 EOS
-      n = contents.index( nil ) || contents.size + 1
-      left  = contents.slice!( 0, (n+1).div(2) )
-      right = contents.slice!( 0, n.div(2) )
-      contents.compact!
-
-      right.size.times do |k|
-        number_left = left[k].first
-        title_left  = left[k].last
-
-        number_right = right[k].first
-        title_right = right[k].last
-        
+  
+      half = contents.size.quo(2).ceil
+      0.upto( half-1 ) do |i|
+        number, title = contents[i]
         toc << <<EOS
-\\textbf{#{number_left}}$\\quad$#{title_left} &
-\\emph{\\pageref{album:#{number_left}}} & &
-\\textbf{#{number_right}}$\\quad$#{title_right} &
-\\emph{\\pageref{album:#{number_right}}} \\tabularnewline\n
+\\textbf{#{number}}$\\quad$#{title} & \\emph{\\pageref{album:#{number}}} & & 
 EOS
-      end
 
-      if right.size < left.size
-        number = left.last[ 0 ]
-        title  = left.last[ 1 ]
-        toc << <<EOS
-\\textbf{#{number}}$\\quad$#{title} &
-\\emph{\\pageref{album:#{number}}} &
-&&\\tabularnewline\n
+        if i + half < contents.size
+          number, title = contents[i+half]
+
+          toc << <<EOS
+\\textbf{#{number}}$\\quad$#{title} & \\emph{\\pageref{album:#{number}}}
 EOS
-      end
-
-      unless contents.empty?
-        # append the remaining misc entries
-        toc << "&&&&\\tabularnewline\n&&&&\\tabularnewline\n"
-      
-        contents.each do |letter, title|
-          toc << "\\multicolumn{4}{r}{\\textbf{#{letter}}$\\quad$" \
-          "#{title}} & \\emph{\\pageref{album:#{letter}}}\\tabularnewline\n"
+        else
+          toc << "&&"
         end
+        toc << "\\tabularnewline\n"
       end
       toc << <<EOS
 &&&&\\tabularnewline
