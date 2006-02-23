@@ -10,12 +10,18 @@ class Seal
   def tex
     Dir::chdir( @options[ :directory ] )
 
-    commands = [ "latex mbpbook", 
-                 "makeindex mbpbook",
-                 "latex mbpbook",
-                 "dvips mbpbook" ]
+    unless @options[ :pdf ]
+      commands = [ "latex mbpbook", 
+                   "makeindex mbpbook",
+                   "latex mbpbook",
+                   "dvips mbpbook" ]
+    else
+      commands = [ "pdflatex mbpbook", 
+                   "makeindex mbpbook",
+                   "pdflatex mbpbook",
+                   "dvips mbpbook" ]
+    end
     
-#    begin
     commands.each do |command|
       run_command( command )
       if not $?.success?
@@ -23,9 +29,6 @@ class Seal
         exit( 1 )
       end
     end
-#    rescue
-      
-#    end
   end
 
   def run_command( command )
@@ -56,6 +59,9 @@ EOS
 
     opts.version = Seal::VERSION
 
+    opts.on( "--pdf", "Create PDF output instead of PostScript" ) do |pdf|
+      options[ :pdf ] = pdf
+    end
     opts.on( "-v", "--[no-]verbose", "Write out what is going on" ) do |v|
       options[ :quiet ] = !v
     end
