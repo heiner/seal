@@ -11,6 +11,18 @@ class Seal
 
   RESIDENCE = File::dirname(__FILE__)
 
+  def Seal::out
+    $stdout
+  end
+
+  def Seal::err
+    $stderr
+  end
+
+  def Seal::exit( state=0 )
+    exit( state )
+  end
+
   def initialize( options )
     @options = options
     @data = YAML::load_file( File::join( RESIDENCE, 'data', 'songs.yaml' ) )
@@ -89,8 +101,8 @@ EOS
       if @options[ :force ] or ask( "Directory `#{dest}' exists. Overwrite?" )
         rm_rf( Dir::glob( File::join( dest, "*[^~]" ) ) )
       else
-        puts 'Abort.'
-        exit( 2 )
+        Seal::err << 'Abort.'
+        Seal::exit( 2 )
       end
     else
       mkdir( dest )
@@ -206,5 +218,6 @@ EOS
   begin
     seal.convert
   rescue Interrupt
+    exit 2
   end
 end

@@ -31,7 +31,7 @@ module Converting
     dest = File::join( dest_dir, basename + '.tex' )
 
     unless quiet
-      $stdout << "Convert #{Converting::nicepath(src)} ... "
+      Seal::out << "Convert #{Converting::nicepath(src)} ... "
     end
     begin
       # maybe we want a zip file?
@@ -42,7 +42,7 @@ module Converting
       ifile.close unless ifile.nil?
       ofile.close unless ofile.nil?
     end
-    $stdout << "done\n" unless quiet
+    Seal::out << "done\n" unless quiet
   end
 
   def write( string )
@@ -239,7 +239,7 @@ module Converting
       content.gsub!(' ', '~')
       content.gsub!( "\t", '~'*8 )
       if content.include?( "\n\n" )
-        $stderr << "\nWARNING: empty line in tab.\nFile #{File::expand_path(@istream.path)}\n"
+        Seal::err << "\nWARNING: empty line in tab.\nFile #{File::expand_path(@istream.path)}\n"
         content.gsub!( /\n\n+/, "\\end{pre}\\begin{pre}" )
       end
       content.gsub!( "\n", "\\\\\\*\n" ) # SIX backslashes needed
@@ -467,9 +467,6 @@ EOS
 
     outtake_mode = false
     @songs.each do |song|
-      key = File::basename( song, '.htm' )
-      already_converted = @songtitles.has_key?( key )
-
       case SongConverter::song_type( song )
       when :normal
         prefix = ""
@@ -489,8 +486,11 @@ EOS
         prefix = "\\referencearrow"
       end
 
-      if already_converted
+      key = File::basename( song, '.htm' )
+      if @songtitles.has_key?( key )
+        # already converted
         self << format_song_entry( key, prefix )
+        Seal::out << "Hit #{Converting::nicepath(song)}"
       else
         convert_song( song, prefix )
       end
