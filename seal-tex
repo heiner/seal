@@ -18,8 +18,7 @@ class Seal
     else
       commands = [ "pdflatex mbpbook", 
                    "makeindex mbpbook",
-                   "pdflatex mbpbook",
-                   "dvips mbpbook" ]
+                   "pdflatex mbpbook" ]
     end
     
     commands.each do |command|

@@ -490,7 +490,7 @@ EOS
       if @songtitles.has_key?( key )
         # already converted
         self << format_song_entry( key, prefix )
-        Seal::out << "Hit #{Converting::nicepath(song)}"
+        Seal::out << "Hit #{Converting::nicepath(song)}\n"
       else
         convert_song( song, prefix )
       end
