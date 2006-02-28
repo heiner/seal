@@ -146,15 +146,15 @@ module Converting
         ostring << "\\\\"
       when 'a'
         if child.attributes['class'] == 'recordlink'
-          ostring << '\\emph{' << Converting::texify(child.text) << '}'
+          ostring << '\\emph{' << convert_paragraph( child ) << '}'
         else
           # unhandled link
           ostring << Converting::texify( child.text )
         end
       when 'i', 'em'
-        ostring << '\\emph{' << Converting::texify(child.text) << '}'
+        ostring << '\\emph{' << convert_paragraph( child ) << '}'
       when 'b', 'strong'
-        ostring << '\\textbf{' << Converting::texify( child.text ) << '}'
+        ostring << '\\textbf{' << convert_paragraph( child ) << '}'
       when 'pre'
         ostring << convert_preformatted( child )
       when 'img'

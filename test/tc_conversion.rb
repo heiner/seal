@@ -7,6 +7,15 @@ require 'conversion'
 require 'stringio'
 require 'ostruct'
 
+class Seal
+  def Seal::out
+    $stdout
+  end
+  def Seal::err
+    $stderr
+  end
+end
+
 class TestModuleConverting < Test::Unit::TestCase
 
   include Converting
@@ -76,8 +85,8 @@ class TestModuleConverting < Test::Unit::TestCase
       "\\subsection*{A BIGGER\\\\ \\textbf{SURPRISE}}\n"],
     [ "<p>This is a &ldquo;paragraph&rdquo;, I said a <em>paragraph</em></p>",
       "\nThis is a ``paragraph'', I said a \\emph{paragraph}\n" ],
-    [ "<p>&#9839;&#9837;</p>", "\n$\\sharp$$\\flat$\n" ]
-
+    [ "<p>&#9839;&#9837;</p>", "\n$\\sharp$$\\flat$\n" ],
+    [ "<p><em>Italic<br />Newline</em></p>", "\n\\emph{Italic\\\\Newline}\n" ]
   ]
   
   def test_tag_coversion
@@ -235,7 +244,7 @@ EOS
 EOS
     pre_tags.last << <<EOS
 \\begin{pre}%
-G\\\\*
+~~G\\\\*
 ~~:~~~.~~~.~~~~~:~~~.~~~.~~~~~:~~~.~~~.\\\\*
 |{-}{-}{-}{-}-3-3-3-3-|{-}{-}{-}{-}-3-3-3-3-|{-}{-}{-}{-}-3-3{-}{-}{-}{-}-|\\\\*
 |{-}{-}{-}{-}-0-0-0-0-|{-}{-}{-}{-}-0-0-0-0-|{-}{-}{-}{-}-0-0{-}{-}{-}{-}-|\\\\*
@@ -342,14 +351,6 @@ Released June 20 1980
 EOS
 
     latex = []
-    latex << <<EOS
-\\def\\thesong{}
-\\cleardoublepage
-\\def\\thealbum{Saved}
-\\thispagestyle{album}
-\\label{album:23}
-EOS
-
     latex << <<EOS
 \\begin{flushright}
 \\scalebox{6}{\\Huge 23}
