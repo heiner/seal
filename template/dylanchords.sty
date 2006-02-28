@@ -4,7 +4,6 @@
 % (fits well and is the most beautiful tt font anyway.)
 \RequirePackage[T1]{fontenc}
 \RequirePackage{textcomp}
-\RequirePackage{ifpdf}
 \RequirePackage[osf]{mathpazo}
 %\RequirePackage{mathpazo}
 %\renewcommand{\rmdefault}{pgyj}
@@ -17,6 +16,12 @@
 
 \IfFileExists{url.sty}{\RequirePackage{url}}
                       {\newcommand{\url}{\texttt}}
+
+\ifpdf
+  \RequirePackage[colorlinks]{hyperref}
+\else
+  \newcommand{\pdfbookmark}[2]{}x
+\fi
 
 % letterspacing command
 \sodef\ls{}{0.1em}{0.4em plus0.2em}{2em plus.1em minus .1em}
@@ -47,6 +52,7 @@
 \newcommand{\songlbl}[2]{
   \newpage
   \def\thesong{#1}
+  \phantomsection
   \label{song:#2}
   \section*{#1}
   \index{\protect\capssong{#1}}
@@ -57,7 +63,7 @@
 
 \newcommand{\songversionlbl}[2]{
   \subsubsection*{#1}
-  \label{Song:#2}
+  \label{song:#2}
 }
 
 \newcommand{\remark}[1]{

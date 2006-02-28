@@ -61,7 +61,9 @@ class Seal
     File::open( toc, "w" ) do |toc|
       toc << <<EOS
 \\thispagestyle{empty}
-\\begin{center}\\vspace*\\fill\\begin{tabular}{rlcrl}
+\\vspace*\\fill
+\\pdfbookmark{Contents}{toc}
+\\begin{center}\\begin{tabular}{rlcrl}
 \\multicolumn{5}{r}{{\\Huge Contents}}\\tabularnewline
 &&&&\\tabularnewline
 &&&&\\tabularnewline

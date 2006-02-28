@@ -234,7 +234,10 @@ module Converting
       # a tab with all the numbers and dashes
       ostring << "\n\\begin{pre}%\n"
 
-      content.strip!
+      content.rstrip!
+      # if we had no tabs with empty lines,
+      # the next `while' could be `if'. We don't warn here!
+      content.slice!( 0 ) while content[0] == ?\n
       content.gsub!('--','{-}{-}')  #.split( "\n" )
       content.gsub!(' ', '~')
       content.gsub!( "\t", '~'*8 )
@@ -444,6 +447,8 @@ class AlbumBuilder
 \\cleardoublepage
 \\def\\thealbum{#{@albumtitle}}
 \\thispagestyle{album}
+\\phantomsection
+\\pdfbookmark{#{@number} #{@albumtitle}}{album#{@number}}
 \\label{album:#{@number}}
 
 \\begin{flushright}
@@ -490,7 +495,7 @@ EOS
       if @songtitles.has_key?( key )
         # already converted
         self << format_song_entry( key, prefix )
-        Seal::out << "Hit #{Converting::nicepath(song)}\n"
+        Seal::out << "Hit #{Converting::nicepath(song)}\n" unless quiet
       else
         convert_song( song, prefix )
       end

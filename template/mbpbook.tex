@@ -69,8 +69,12 @@
   \input{index}
 
   \cleardoublepage
+
+  \phantomsection
   \renewcommand{\indexname}{Song Index}
   \label{songindex}
+  \pdfbookmark{Index}{index}
+  \pagestyle{plain}
   \printindex
   ~
   \cleardoublepage
