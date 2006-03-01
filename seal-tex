@@ -10,31 +10,39 @@ class Seal
   def tex
     Dir::chdir( @options[ :directory ] )
 
-    unless @options[ :pdf ]
-      commands = [ "latex mbpbook", 
-                   "makeindex mbpbook",
-                   "latex mbpbook",
-                   "dvips mbpbook" ]
+    if @options[ :pdf ]
+      tex_cmd = "pdflatex mbpbook"
     else
-      commands = [ "pdflatex mbpbook", 
-                   "makeindex mbpbook",
-                   "pdflatex mbpbook" ]
+      tex_cmd = "latex mbpbook"
     end
+    makeindex_cmd = "makeindex mbpbook"
+    dvips_cmd = "dvips mbpbook -o"
+
+    run_command( tex_cmd )
+    if File::stat( "mbpbook.idx" ).zero?
+      # Only one LaTeX run isn't enough
+      # for older versions of the memoir
+      # class. What a pity.
+      run_command( tex_cmd )
+    end
+    run_command( makeindex_cmd )
+    run_command( tex_cmd )
     
-    commands.each do |command|
-      run_command( command )
-      if not $?.success?
-        $stderr << "error: command `#{command}' failed\n"
-        exit( 1 )
-      end
+    unless @options[ :pdf ]
+      run_command( dvips_cmd )
     end
   end
 
   def run_command( command )
+    $stderr << "Running: " << command << "\n"
     if @options[ :quiet ]
       `#{command}`
     else
       system( command )
+    end
+    if not $?.success?
+      $stderr << "Error: command `#{command}' failed\n"
+      exit( 1 )
     end
   end
   

@@ -215,6 +215,7 @@ module Converting
       content.lstrip!
       content.chomp!
       content.gsub!( ' ', '~' )
+      content.gsub!('--','{-}{-}') # here, too ...
       content.gsub!( "[", "{\\relax}[" )
 
       content.each_line do |line|
