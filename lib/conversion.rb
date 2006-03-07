@@ -45,11 +45,6 @@ module Converting
     Seal::out << "done\n" unless quiet
   end
 
-  def write( string )
-    @ostream << Converting::texify( string )
-    self
-  end
-
   def write_raw( string )
     @ostream << string
     self
@@ -75,7 +70,7 @@ module Converting
 
       tag.each do |child|
         if child.node_type == :text
-          write( child.value )
+	  self << Converting::texify( child.value )
         elsif child.node_type == :comment
           self << "% Skipping comment\n"
         elsif child.name == 'li'
@@ -90,11 +85,9 @@ module Converting
       tag.each do |child|
         case child.node_type
         when :text
-          write( child.value )
-          next
+	  self << Converting::texify( child.value )
         when :comment
           self << "% Skipping comment\n"
-          next
         else
           next_tag( child )
         end
@@ -103,11 +96,11 @@ module Converting
       self << "\\begin{quote}\n"
       tag.each do |child|
         if child.node_type == :text
-          write( child.value )
+	  self << Converting::texify( child.value )
         elsif child.node_type == :comment
           self << "% Skipping comment\n"
         else
-          self << convert_paragraph( child )
+          next_tag( child )
         end
       end
       self << "\\end{quote}\n"
@@ -212,7 +205,8 @@ module Converting
       end
       ostring << "%\n"
 
-      content.lstrip!
+      content.slice!( 0 ) if content[0] == ?\n
+
       content.chomp!
       content.gsub!( ' ', '~' )
       content.gsub!('--','{-}{-}') # here, too ...

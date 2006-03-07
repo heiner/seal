@@ -83,7 +83,7 @@ EOS
 \\textbf{#{number}}$\\quad$#{title} & \\emph{\\pageref{album:#{number}}}
 EOS
         else
-          toc << "&&"
+          toc << "&"
         end
         toc << "\\tabularnewline\n"
       end

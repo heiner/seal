@@ -23,6 +23,7 @@ class Seal
       # Only one LaTeX run isn't enough
       # for older versions of the memoir
       # class. What a pity.
+      $stderr << "Two LaTeX runs needed\n"
       run_command( tex_cmd )
     end
     run_command( makeindex_cmd )
@@ -34,7 +35,6 @@ class Seal
   end
 
   def run_command( command )
-    $stderr << "Running: " << command << "\n"
     if @options[ :quiet ]
       `#{command}`
     else

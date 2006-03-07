@@ -1,11 +1,16 @@
 #!/usr/bin/env ruby
 # -*- ruby -*-
 
-require 'Qt'
-require 'qui'
-
 load 'seal-convert'
 load 'seal-tex'
+
+begin
+  require 'Qt'
+  require 'qui'
+rescue LoadError
+  Seal::err << "Error: You must have Ruby/Qt installed to run this program.\n"
+  exit( 3 )
+end
 
 class Seal 
 
