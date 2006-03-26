@@ -3,7 +3,7 @@
 
 require 'yaml'
 require 'fileutils'
-require 'lib/conversion'
+require 'src/conversion'
 
 class Seal
 
@@ -26,6 +26,8 @@ class Seal
   def initialize( options )
     @options = options
     @data = YAML::load_file( File::join( RESIDENCE, 'data', 'songs.yaml' ) )
+    @albums = YAML::load_file( File::join( RESIDENCE, 'data',
+                                           'albums.yaml' ) )
     @albumbuilder = AlbumBuilder.new( @options[ :quiet ] )
     $stdout.sync = true unless options[ :quiet ]
   end
@@ -35,11 +37,7 @@ class Seal
 
     index = File::new( File::join( @options[ :destination ], 'index.tex' ), 'w' )
     contents = []
-
-    albums = @data.keys.sort
-    albums << albums.shift # this makes 00_misc come last instead of first
-
-    albums.each_with_index do |album, number|
+    @albums.each_with_index do |album, number|
       index_html  = File::join( @options[ :source ], album, 'index.htm' )
       destination = File::join( @options[ :destination ], album )
       number += 1
@@ -160,7 +158,7 @@ end
 
 if __FILE__ == $0
   require 'optparse'
-  require 'lib/about'
+  require 'src/about'
   
   options = Hash.new
   opts = OptionParser.new do |opts|
@@ -168,7 +166,7 @@ if __FILE__ == $0
 seal #{Seal::VERSION} from #{Seal::DATE}
 Usage: seal-convert [options] source [destination]
 
-seal-convert is a simple command line tool to convert
+seal-convert is a command line tool to convert
 the Dylanchords HTML files to LaTeX
 
 Options:

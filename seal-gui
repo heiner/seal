@@ -91,7 +91,7 @@ class Seal
     
     @connector = Connector.new
     @connector.seal = self
-    @connector.widget = QUI::WidgetFactory::create( "lib/gui.ui", @connector )
+    @connector.widget = QUI::WidgetFactory::create( "src/gui.ui", @connector )
     $widgetout = WidgetIO.new( @connector.widget.child( "convertOutput" ) )
     $widgeterr = WidgetIO.new( @connector.widget.child( "convertOutput" ) )
 
@@ -123,7 +123,7 @@ end
 
 if __FILE__ == $0
   require 'optparse'
-  require 'lib/about'
+  require 'src/about'
   
   opts = OptionParser.new do |opts|
     opts.banner = <<EOS

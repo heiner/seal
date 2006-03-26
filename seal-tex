@@ -50,7 +50,7 @@ end
 
 if __FILE__ == $0
   require 'optparse'
-  require 'lib/about'
+  require 'src/about'
   
   options = Hash.new
   opts = OptionParser.new do |opts|
