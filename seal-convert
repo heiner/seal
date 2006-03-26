@@ -38,14 +38,17 @@ class Seal
     index = File::new( File::join( @options[ :destination ], 'index.tex' ), 'w' )
     contents = []
     @albums.each_with_index do |album, number|
-      index_html  = File::join( @options[ :source ], album, 'index.htm' )
-      destination = File::join( @options[ :destination ], album )
-      number += 1
+      dir, ext = album.split( "#" )
+      ext = '_' + ext if not ext.nil?
+
+      index_html  = File::join( @options[ :source ], dir, "index.htm" )
+      destination = File::join( @options[ :destination ], dir )
+      number = number.next
       #songs = @data[ album ].select { |song| song[-1] != ?@ and song[-1] != ?* }
       songs = @data[ album ]
 
-      @albumbuilder.convert_album( index_html, destination, number, songs )
-      index << "\\input{" << File::join( album, "index.tex" ) << "}\n"
+      @albumbuilder.convert_album( album, index_html, destination, number, songs )
+      index << "\\input{" << File::join( dir, "index#{ext}.tex" ) << "}\n"
       contents << [ number, @albumbuilder.albumtitle ]
     end
 
@@ -111,7 +114,15 @@ EOS
     copy_dir( File::join( RESIDENCE, "template" ), dest )
 
     @data.each_key do |album|
-      mkdir( File::join( dest, album ) )
+      if album.include?( ?# )
+        dir, ext = album.split( '#' )
+        dir = File::join( dest, dir )
+        if not File::exists?( dir )
+          mkdir( dir )
+        end
+      else
+        mkdir( File::join( dest, album ) )
+      end
     end
 
     about = File::join( dest, 'about.tex' )

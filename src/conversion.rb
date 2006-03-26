@@ -18,7 +18,7 @@ module Converting
     @istream, @ostream = istream, ostream
 
     self << "% Converted by seal on #{Time.now}\n\n"
-    document = get_document
+    document = create_document
     document.root.elements[ 'body' ].elements.each do |tag|
       # thus we're ignoring any non-tag directly in <body>
       next_tag( tag )
@@ -29,7 +29,10 @@ module Converting
     src_ext  = File::extname( src )
     basename = File::basename( src, src_ext )
     dest = File::join( dest_dir, basename + '.tex' )
+    convert_file_as( src, dest )
+  end
 
+  def convert_file_as( src, dest )
     unless quiet
       Seal::out << "Convert #{Converting::nicepath(src)} ... "
     end
@@ -111,7 +114,7 @@ module Converting
 
   protected
 
-  def get_document
+  def create_document
     begin
       doc = Document.new( @istream, {:raw => :all} )
     rescue ParseException
@@ -397,22 +400,28 @@ class AlbumBuilder
 
   include Converting
 
-  attr_reader :albumtitle
+  attr_reader :albumtitle, :continued
 
   def initialize( quiet=false )
     @quiet = true
     @songconverter = SongConverter.new
     @songconverter.quiet = quiet
     @songtitles = {}
+    @continued = false
   end
 
-  def convert_album( index_html, destination, number, songs )
+  def convert_album( album, index_html, destination, number, songs )
+    @album = album
     @source = File::dirname( index_html )
+    @continued = (@destination == destination)
     @destination = destination
     @number = number
     @songs = songs
 
-    convert_file( index_html, destination )
+    dir, ext = album.split( "#" )
+    ext = '_' + ext if not ext.nil?
+
+    convert_file_as( index_html, File::join( destination, "index#{ext}.tex" ) )
   end
 
   protected
@@ -422,42 +431,7 @@ class AlbumBuilder
 
     @ostream << "% Converted by seal on #{Time.now}\n\n"
 
-    doc = get_document
-
-    title = doc.root.elements['head'].elements['title'].text
-    if title =~ /(?:Bob Dylan:\s*)?(.*)\(\S+(?:, live)?\)/
-      title = $1
-    end
-    title_latex = format_title( title.strip )
-
-    release = XPath::first( doc, "//p[ @class='recdate' ]" )
-    unless release.nil?
-      release = format_release( release.texts )
-    else
-      release = "Various"
-    end
-
-    self << <<EOS
-\\def\\thesong{}
-\\cleardoublepage
-\\def\\thealbum{#{@albumtitle}}
-\\thispagestyle{album}
-\\phantomsection
-\\pdfbookmark{#{@number} #{@albumtitle}}{album#{@number}}
-\\label{album:#{@number}}
-
-\\begin{flushright}
-\\scalebox{6}{\\Huge #{@number}}
-
-\\vspace{5ex}
-#{title_latex}
-
-{\\footnotesize #{release}}
-
-\\vspace{10ex}
-
-\\begin{tabular}{rl}
-EOS
+    doc = begin_index
 
     # @songs_tag = REXML::XPath::first( @document, "//div[ @id='songs' ]" )
     # (we could try to parse the index file by ourselves and find
@@ -559,7 +533,45 @@ EOS
     string
   end
 
-  def format_title( title )
+  def begin_index
+    doc = create_document
+    
+    if @continued
+      case @album
+      #when 'bootleg#cd1'
+      when 'bootleg#cd2'
+        title_latex = "\\scalebox{1.5}{\\Huge Bootleg Series 1-3, CD 2}\n"
+        title = 'Bootleg Series'
+      when 'bootleg#cd2'
+        title_latex = "\\scalebox{1.5}{\\Huge Bootleg Series 1-3, CD 3}\n"
+        title = 'Bootleg Series'
+      when '00_misc#early'
+        title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
+        title = 'Miscellaneous'
+      when '00_misc#electric'
+        title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
+        title = 'Miscellaneous'
+      when '00_misc#rtr'
+        title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
+        title = 'Miscellaneous'
+      when '00_misc#1978'
+        title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
+        title = 'Miscellaneous'
+      when '00_misc#gospel'
+        title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
+        title = 'Miscellaneous'
+      when '00_misc#outtakes'
+        title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
+        title = 'Miscellaneous'
+      when '00_misc#live'
+        title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
+        title = 'Miscellaneous'
+      end
+    end
+    title = doc.root.elements['head'].elements['title'].text
+    if title =~ /(?:Bob Dylan:\s*)?(.*)\(\S+(?:, live)?\)/
+      title = $1
+    end
     case title
     when "Freewheelin'"
       title_latex = "\\scalebox{1.5}{\\Huge The Freewheelin'}\n\n" \
@@ -594,9 +606,38 @@ EOS
 
       title_latex = "\\scalebox{1.5}{\\Huge #{title}}\n"
     end
-
     @albumtitle = title
-    return title_latex
+
+    release = XPath::first( doc, "//p[ @class='recdate' ]" )
+    unless release.nil?
+      release = format_release( release.texts )
+    else
+      release = "Various"
+    end
+    
+    self << <<EOS
+\\def\\thesong{}
+\\cleardoublepage
+\\def\\thealbum{#{title}}
+\\thispagestyle{album}
+\\phantomsection
+\\pdfbookmark{#{@number} #{@title}}{album#{@number}}
+\\label{album:#{@number}}
+
+\\begin{flushright}
+\\scalebox{6}{\\Huge #{@number}}
+
+\\vspace{5ex}
+#{title_latex}
+
+{\\footnotesize #{release}}
+
+\\vspace{10ex}
+
+\\begin{tabular}{rl}
+EOS
+
+    doc
   end
   
 end
