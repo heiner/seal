@@ -1,5 +1,5 @@
 
-$:.unshift File::join( File::dirname( __FILE__ ), '..', 'lib' )
+$:.unshift File::join( File::dirname( __FILE__ ), '..', 'src' )
 
 require 'test/unit'
 require 'conversion'
@@ -306,14 +306,6 @@ class TestClassAlbumBuilder < Test::Unit::TestCase
     end
   end
 
-  def test_format_title
-    title_latex = @builder.send( :format_title, "The Times They Are A-Changin'" )
-    assert_equal( "\\scalebox{1.5}{\\Huge The Times}\n\n" \
-                  "\\vspace{1ex}\n\\scalebox{1.5}{\\Huge They Are A-Changin'}\n",
-                  title_latex )
-    assert_equal( "The Times The Are A-Changin'", @builder.albumtitle )
-  end
-
   def test_convert
     istring = <<EOS
 <?xml version="1.0" encoding="UTF-8"?>
@@ -350,31 +342,19 @@ Released June 20 1980
 </html>
 EOS
 
-    latex = []
-    latex << <<EOS
-\\begin{flushright}
-\\scalebox{6}{\\Huge 23}
-
-\\vspace{5ex}
-\\scalebox{1.5}{\\Huge Saved}
-EOS
-
-    latex << <<EOS
+    latex = <<EOS
 {\\footnotesize Recorded February 11--15 1980 --- Released June 20 1980}
-
-\\vspace{10ex}
-
 \\begin{tabular}{rl}
 \\end{tabular}
-\\end{flushright}
 EOS
     @builder.songs = []
     @builder.number = 23
     ostring = ""
     @builder.send( :convert, istring, ostring )
-    latex.each do |string|
-      assert( ostring.include?( string ),
-              "`Saved' index isn't converted right: Should include <#{string.dump}>" )
+
+    latex.each_line do |line|
+      assert( ostring.include?( line ),
+              "`Saved' index isn't converted right: Should include <#{line.dump}>" )
     end
   end
 

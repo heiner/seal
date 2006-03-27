@@ -400,22 +400,21 @@ class AlbumBuilder
 
   include Converting
 
-  attr_reader :albumtitle, :continued
+  attr_reader :number, :title
 
   def initialize( quiet=false )
     @quiet = true
     @songconverter = SongConverter.new
     @songconverter.quiet = quiet
     @songtitles = {}
-    @continued = false
+    @number = 0
   end
 
-  def convert_album( album, index_html, destination, number, songs )
+  def convert_album( album, index_html, destination, songs )
     @album = album
     @source = File::dirname( index_html )
-    @continued = (@destination == destination)
     @destination = destination
-    @number = number
+    @number = @number.next
     @songs = songs
 
     dir, ext = album.split( "#" )
@@ -441,6 +440,10 @@ class AlbumBuilder
 
     outtake_mode = false
     @songs.each do |song|
+      if song.nil?
+        self << "\\end{tabular}\n\\begin{tabular}{rl}"
+        next
+      end
       case SongConverter::song_type( song )
       when :normal
         prefix = ""
@@ -536,89 +539,86 @@ class AlbumBuilder
   def begin_index
     doc = create_document
     
-    if @continued
-      case @album
-      #when 'bootleg#cd1'
-      when 'bootleg#cd2'
-        title_latex = "\\scalebox{1.5}{\\Huge Bootleg Series 1-3, CD 2}\n"
-        title = 'Bootleg Series'
-      when 'bootleg#cd2'
-        title_latex = "\\scalebox{1.5}{\\Huge Bootleg Series 1-3, CD 3}\n"
-        title = 'Bootleg Series'
-      when '00_misc#early'
-        title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
-        title = 'Miscellaneous'
-      when '00_misc#electric'
-        title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
-        title = 'Miscellaneous'
-      when '00_misc#rtr'
-        title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
-        title = 'Miscellaneous'
-      when '00_misc#1978'
-        title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
-        title = 'Miscellaneous'
-      when '00_misc#gospel'
-        title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
-        title = 'Miscellaneous'
-      when '00_misc#outtakes'
-        title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
-        title = 'Miscellaneous'
-      when '00_misc#live'
-        title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
-        title = 'Miscellaneous'
-      end
-    end
-    title = doc.root.elements['head'].elements['title'].text
-    if title =~ /(?:Bob Dylan:\s*)?(.*)\(\S+(?:, live)?\)/
-      title = $1
-    end
-    case title
-    when "Freewheelin'"
+    case @album
+    when "02_freewheelin"
       title_latex = "\\scalebox{1.5}{\\Huge The Freewheelin'}\n\n" \
         "\\vspace{1ex}\n\\scalebox{1.5}{\\Huge Bob Dylan}\n"
-      title = "The Freewheelin' Bob Dylan"
-    when "The Times They Are A-Changin'"
+      @title = "The Freewheelin' Bob Dylan"
+    when "03_times"
       title_latex = "\\scalebox{1.5}{\\Huge The Times}\n\n" \
         "\\vspace{1ex}\n\\scalebox{1.5}{\\Huge They Are A-Changin'}\n"
-      title = "The Times The Are A-Changin'"
-    when 'Live 1966'
+      @title = "The Times The Are A-Changin'"
+    when '39_rah'
       title_latex = "{\\Large Bootleg Series vol. 4: Live 1966}\n\n" \
         "\\vspace{1ex}\n{\\Huge The ``Royal Albert Hall'' Concert}\n"
-      title = "Live 1966"
-    when 'Bootleg Series vol. 5: Live 1975 (The Rolling Thunder Revue)'
+      @title = "Live 1966"
+    when '42_bs5'
       title_latex = "{\\Large Bootleg Series vol. 5: Live 1975}\n\n" \
         "\\vspace{1ex}\n{\\Huge The Rolling Thunder Revue}\n"
-      title = "Live 1975"
-    when 'Bootleg Series vol. 6: Live 1964 (The Philharmonic Hall)'
+      @title = "Live 1975"
+    when '43_bs6'
       title_latex = "{\\Large Bootleg Series vol. 6: Live 1964}\n\n" \
         "\\vspace{1ex}\n{\\Huge Concert at Philharmonic Hall}\n"
-      title = "Live 1964"
-    when 'Bootleg Series vol. 7: No Direction Home'
+      @title = "Live 1964"
+    when '44_bs7_ndh'
       title_latex = "{\\Large Bootleg Series vol. 7}\n\n" \
         "\\vspace{1ex}\n{\\Huge No Direction Home: The Soundtrack}\n"
-      title = "No Direction Home"
-    when 'Miscellaneous'
-      title_latex = "\\scalebox{1.5}{\\Huge Miscellaneous}\n"
-      title = 'Miscellaneous'
+      @title = "No Direction Home"
+    when '00_misc#early'
+      title_latex = "\\scalebox{1.5}{\\Huge Early Acoustic Bob}\n"
+      @title = 'Early Acoustic Bob'
+      @number = 'A'
+      release = 'Miscellaneous songs from 1960 to 1965'
+    when '00_misc#electric'
+      title_latex = "\\scalebox{1.5}{\\Huge (More or less) Electric Bob}\n"
+      @title = '(More or less) Electric Bob'
+      release = 'Miscellaneous songs from 1965 to 1975'
+    when '00_misc#rtr'
+      title_latex = "\\scalebox{1.5}{\\Huge The Rolling Thunder Revue}\n"
+      @title = 'Rolling Thunder Revue'
+      release = 'Lasting from 1975 to 1976'
+    when '00_misc#1978'
+      title_latex = "\\scalebox{1.5}{\\Huge 1978 World Tour}\n"
+      @title = '1978 World Tour'
+      release = 'Lasting from February to December 1978'
+    when '00_misc#gospel'
+      title_latex = "\\scalebox{1.5}{\\Huge Gospel period}\n"
+      @title = 'Gospel period'
+      release = 'From 1979 to 1981'
+    when '00_misc#outtakes'
+      title_latex = "\\scalebox{1.5}{\\Huge Studio outtakes, soundtracks etc.}\n"
+      @title = 'Studio outtakes, soundtracks etc.'
+      release = '1978 -- present'
+    when '00_misc#live'
+      title_latex = "\\scalebox{1.5}{\\Huge Live covers}\n"
+      @title = 'Live covers'
+      release = '1984 -- present'
     else
-      title.gsub!("&", "\\\\&")
-      title.gsub!( /"([^"]*)"/, "``\\1''" ) # "
+      @title = doc.root.elements['head'].elements['title'].text
+      if @title =~ /(?:Bob Dylan:\s*)?(.*)\(\S+(?:, live)?\)/
+        @title = $1
+      end
+
+      @title.gsub!("&", "\\\\&")
+      @title.gsub!( /"([^"]*)"/, "``\\1''" ) # "
 
       title_latex = "\\scalebox{1.5}{\\Huge #{title}}\n"
     end
-    @albumtitle = title
 
-    release = XPath::first( doc, "//p[ @class='recdate' ]" )
-    unless release.nil?
-      release = format_release( release.texts )
-    else
-      release = "Various"
+    if release.nil?
+      release = XPath::first( doc, "//p[ @class='recdate' ]" )
+      unless release.nil?
+        release = format_release( release.texts )
+      else
+        @number = 'X'
+        release = "Various"
+      end
     end
     
     self << <<EOS
 \\def\\thesong{}
 \\cleardoublepage
-\\def\\thealbum{#{title}}
+\\def\\thealbum{#{@title}}
 \\thispagestyle{album}
 \\phantomsection
 \\pdfbookmark{#{@number} #{@title}}{album#{@number}}

@@ -377,6 +377,7 @@
   - "lay_down_your_weary_tune.htm"
   - "../05_biabh/subterranean_homesick_blues.htm@"
   - "../04_anotherside/i_dont_believe_you.htm@"
+  - 
   - "../07_bob/visions_of_johanna.htm@"
   - "../24_shotoflove/every_grain_of_sand.htm@"
   - "../17_basement/quinn_the_eskimo.htm@"
@@ -394,6 +395,7 @@
   - "positively_4th.htm"
   - "../18_desire/isis.htm@"
   - "jet_pilot.htm"
+  - 
   - "caribbean_winds.htm"
   - "../16_bott/up_to_me.htm@"
   - "baby_im_in_the_mood_for_you.htm"
@@ -455,7 +457,7 @@
   - god_knows.htm
   - handy_dandy.htm
   - cats_in_the_well.htm
-34_bootleg#cd1: 
+34_bootleg: 
   - hard_times_in_new_york_town.htm
   - hewasafriendofmine.htm
   - man_on_the_street.htm
@@ -478,7 +480,7 @@
   - "../03_times/when_the_ship_comes_in.htm@"
   - "../03_times/times_they_are_achangin.htm@"
   - last_thoughts_on_woody_guthrie.htm
-34_bootleg#cd2:
+  - 
   - seven_curses.htm
   - eternal_circle.htm
   - suze_the_cough_song.htm
@@ -499,7 +501,7 @@
   - "../16_bott/tangled_up_in_blue.htm@"
   - "call_letter_blues.htm@"
   - "../16_bott/idiot_wind.htm@"
-34_bootleg#cd3:
+  - 
   - "../16_bott/if_you_see_her.htm@"
   - golden_loom.htm
   - catfish.htm
@@ -575,7 +577,7 @@
   - "../06_hwy61/desolation_row.htm@"
   - "../07_bob/just_like_a_woman.htm@"
   - "../05_biabh/mr_tambourine_man.htm@"
-# - 
+  - 
   - "tell_me_momma.htm"
   - "../04_anotherside/i_dont_believe_you.htm@"
   - "../01_bobdylan/baby_let_me_follow_you_down.htm@"
@@ -609,7 +611,7 @@
   - "../02_freewheelin/blowin_in_the_wind.htm@"
   - "../34_bootleg/mama_you_been_on_my_mind.htm@"
   - "../34_bootleg/i_shall_be_released.htm@"
-# - 
+  - 
   - "../05_biabh/its_all_over_now_baby_blue.htm@"
   - "../05_biabh/love_minus_zero.htm@"
   - "../16_bott/tangled_up_in_blue.htm@"
@@ -633,7 +635,7 @@
   - "../04_anotherside/i_dont_believe_you.htm@"
   - "../05_biabh/mr_tambourine_man.htm@"
   - "../02_freewheelin/hard_rain.htm@"
-#  - 
+  - 
   - "../02_freewheelin/talkin_world_war_iii_blues.htm@"
   - "../02_freewheelin/dont_think_twice.htm@"
   - "../03_times/hattie_carroll.htm@"
@@ -659,7 +661,7 @@
   - "../05_biabh/mr_tambourine_man.htm@"
   - "../04_anotherside/chimes_of_freedom.htm@"
   - "../05_biabh/its_all_over_now_baby_blue.htm@"
-#  - 
+  - 
   - "../05_biabh/she_belongs_to_me.htm@"
   - "../05_biabh/maggies_farm.htm@"
   - "../06_hwy61/it_takes_a_lot_to_laugh.htm@"
@@ -673,7 +675,7 @@
   - "../06_hwy61/ballad_of_a_thin_man.htm@"
   - "../06_hwy61/like_a_rolling_stone.htm@"
 others: []
-00_misc: 
+00_misc#early: 
   - two_sisters.htm
   - mary_ann_wallace.htm
   - jesus_met_the_woman.htm
@@ -765,6 +767,7 @@ others: []
 #  - "../34_bootleg/if_you_gotta_go_go_now.htm"
   - love_is_just_a_four_letter_word.htm
   - lost_highway.htm
+00_misc#electric:
 #  - "../28_biograph/positively_4th.htm"
 #  - http://www.geocities.com/SunsetStrip/Palms/9695/chords/Positively_Van_Gogh.html
   - on_a_rainy_afternoon.htm
@@ -781,6 +784,7 @@ others: []
 #  - "../28_biograph/abandoned_love.htm"
   - "../18_desire/rita_may.htm"
   - sign_language.htm
+00_misc#rtr:
 #  - "../17_basement/people_get_ready.htm"
   - dark_as_a_dungeon.htm
   - never_let_me_go.htm
@@ -792,8 +796,11 @@ others: []
   - wild_mountain_thyme.htm
   - dinks_song.htm
   - answerphone_message.htm
+00_misc#1978:
   - am_I_your_stepchild.htm
   - shes_love_crazy.htm
+  - legionnaires_disease.htm
+00_misc#gospel:
   - trouble_in_mind.htm
   - blessed_is_the_name.htm
   - i_will_love_him.htm
@@ -813,6 +820,7 @@ others: []
   - mary_of_the_wild_moor.htm
   - lets_begin_jim_webb.htm
   - thief_on_the_cross.htm
+00_misc#outtakes:
   - repossession_blues.htm
   - coming_from_the_heart.htm
   - if_i_dont_be_there_by_morning.htm
@@ -849,6 +857,7 @@ others: []
   - cross_the_green_mountain.htm
   - diamond_joe2.htm
   - dixie.htm
+00_misc#live:
   - enough_is_enough.htm
   - why_do_i_have_to_choose.htm
   - we_had_it_all.htm
