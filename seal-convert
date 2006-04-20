@@ -35,16 +35,18 @@ class Seal
   def convert
     self.setup
 
-    index = File::new( File::join( @options[ :destination ], 'index.tex' ), 'w' )
+    index = File::new( File::join( @options[ :destination ],
+                                   'index.tex' ), 'w' )
     contents = []
     @albums.each do |album|
+      songs = @data[ album ]
+      next if songs.empty?
+      
       dir, ext = album.split( "#" )
       ext = '_' + ext if not ext.nil?
 
       index_html  = File::join( @options[ :source ], dir, "index.htm" )
       destination = File::join( @options[ :destination ], dir )
-      #songs = @data[ album ].select { |song| song[-1] != ?@ and song[-1] != ?* }
-      songs = @data[ album ]
 
       @albumbuilder.convert_album( album, index_html, destination, songs )
       index << "\\input{" << File::join( dir, "index#{ext}.tex" ) << "}\n"
@@ -67,6 +69,7 @@ class Seal
 \\multicolumn{5}{r}{{\\Huge Contents}}\\tabularnewline
 &&&&\\tabularnewline
 &&&&\\tabularnewline
+Preface & \\emph{\\pageref{preface}}&&&\\tabularnewline
 EOS
   
       half = contents.size.quo(2).ceil

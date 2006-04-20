@@ -2,69 +2,18 @@
 \usepackage{alltt}
 \usepackage{dylanchords}
 
-%% Memoir Manual, page 64--66
-\settrimmedsize{297mm}{210mm}{*}
-\setlength{\trimtop}{0pt}
-\setlength{\trimedge}{\stockwidth}
-\addtolength{\trimedge}{-\paperwidth}
-\settypeblocksize{634pt}{448.13pt}{*}
-\setulmargins{3.5cm}{*}{*}
-\setlrmargins{*}{*}{1.618}
-\setheadfoot{\onelineskip}{2\onelineskip}
-\setheaderspaces{*}{2\onelineskip}{*}
-\checkandfixthelayout
-
-%% NOT the memoir-way...
-\renewcommand{\maketitle}{
-  \thispagestyle{empty}
-  \vspace*{2cm}
-  \calccentering{\unitlength}
-  \begin{adjustwidth*}{\unitlength}{-\unitlength}
-    \begin{center}
-       \scalebox{2}{\Huge \ls{THE}} \par
-       \vspace{8pt}
-       \scalebox{2}{\Huge \ls{\textbf{BOB DYLAN}}} \par
-       \vspace{8pt}
-       \scalebox{2}{\Huge \ls{SONGBOOK}} \par
-       \vspace{20pt}
-    \end{center}
-  \end{adjustwidth*}
-  \begin{flushright}
-    \vfill
-    {\Large \textsc{Eyolf {\O}strem}}
-  \end{flushright}
-  \setcounter{footnote}{0}
-  \newpage
-}
-
-%% Memoir Manual, page 185ff
-\setlength{\headwidth}{\textwidth}
-  \addtolength{\headwidth}{1cm}
-
-\makepagestyle{default}
-\makerunningwidth{default}{\headwidth}
-\makeheadrule{default}{\headwidth}{\normalrulethickness}
-\makeheadposition{default}{flushright}{flushleft}{}{}
-\makeevenhead{default}%
-  {\boldalbum{\thealbum}}{}{}
-\makeevenfoot{default}%
-  {\normalfont\thepage}{}{}
-\makeoddhead{default}%
-  {}{}{\textcolor{songcolor}{\capssong{\thesong}}}
-\makeoddfoot{default}%
-  {}{}{\normalfont\thepage}
-
-\aliaspagestyle{album}{empty}
-
 \makeindex
 
 \begin{document}
   \maketitle
+  
   \input{about}
 
   \pagestyle{default}
 
   \include{contents}
+  \cleardoublepage
+  \include{preface}
 
   \input{index}
 

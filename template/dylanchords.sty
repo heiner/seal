@@ -23,6 +23,74 @@
   \newcommand{\pdfbookmark}[2]{}
 \fi
 
+%% Memoir Manual, page 64--66
+\settrimmedsize{297mm}{210mm}{*}
+\setlength{\trimtop}{0pt}
+\setlength{\trimedge}{\stockwidth}
+\addtolength{\trimedge}{-\paperwidth}
+\settypeblocksize{634pt}{448.13pt}{*}
+\setulmargins{*}{*}{1}
+\setlrmargins{*}{*}{1.618}
+\setheadfoot{\onelineskip}{2\onelineskip}
+\setheaderspaces{*}{2\onelineskip}{*}
+\checkandfixthelayout
+
+%% NOT the memoir-way...
+\renewcommand{\maketitle}{
+  \thispagestyle{empty}
+  \vspace*{2cm}
+  \calccentering{\unitlength}
+  \begin{adjustwidth*}{\unitlength}{-\unitlength}
+    \begin{center}
+       \scalebox{2}{\Huge \ls{THE}} \par
+       \vspace{8pt}
+       \scalebox{2}{\Huge \ls{\textbf{BOB DYLAN}}} \par
+       \vspace{8pt}
+       \scalebox{2}{\Huge \ls{SONGBOOK}} \par
+       \vspace{20pt}
+    \end{center}
+  \end{adjustwidth*}
+  \begin{flushright}
+    \vfill
+    {\Large \textsc{Eyolf {\O}strem}}
+  \end{flushright}
+  \setcounter{footnote}{0}
+  \newpage
+}
+
+%% Memoir Manual, page 185ff
+\setlength{\headwidth}{\textwidth}
+  \addtolength{\headwidth}{1cm}
+
+\makepagestyle{default}
+\makerunningwidth{default}{\headwidth}
+\makeheadrule{default}{\headwidth}{\normalrulethickness}
+\makeheadposition{default}{flushright}{flushleft}{}{}
+\makeevenhead{default}%
+  {\boldalbum{\thealbum}}{}{}
+\makeevenfoot{default}%
+  {\normalfont\thepage}{}{}
+\makeoddhead{default}%
+  {}{}{\textcolor{songcolor}{\capssong{\thesong}}}
+\makeoddfoot{default}%
+  {}{}{\normalfont\thepage}
+
+\aliaspagestyle{album}{empty}
+
+\makepagestyle{article}
+\makerunningwidth{article}{\headwidth}
+\makeheadrule{article}{\headwidth}{0pt}
+\makeheadposition{article}{flushright}{flushleft}{}{}
+\makeevenhead{article}%
+  {}{}{}
+\makeevenfoot{article}%
+  {\normalfont\thepage}{}{}
+\makeoddhead{article}%
+  {}{}{}
+\makeoddfoot{article}%
+  {}{}{\normalfont\thepage}
+
+
 % ``How about a slightly bigger font size for the song titles?''
 %     -- EO, Feb 27, 2006
 \setsecheadstyle{\LARGE\bfseries\raggedright}
@@ -38,7 +106,13 @@
 
 \definecolor{songcolor}{rgb}{.3,.3,.4}
 
-\setlength{\parskip}{1ex}
+\newlength{\bigparindent}
+\setlength{\bigparindent}{\parindent}
+
+\newlength{\bigparskip}
+\setlength{\bigparskip}{1ex}
+
+\setlength{\parskip}{\bigparskip}
 \setlength{\parindent}{0ex}
 
 \newcommand{\bobrule}{\hrulefill}
@@ -111,3 +185,24 @@
   {\end{quote}\end{quote}\end{quote}}
 \newenvironment{spoken}{}{}
 \renewenvironment{verse}{}{}
+
+\newlength{\stdleading}
+\setlength{\stdleading}{\baselineskip}
+
+\newlength{\bigleading}
+\setlength{\bigleading}{\baselineskip}
+\addtolength{\bigleading}{0.2ex}
+
+\newenvironment{articlelayout}%
+  {\pagestyle{article}%
+   \setlength{\baselineskip}{\bigleading}%
+   \setlength{\parindent}{\bigparindent}%
+   \setlength{\parskip}{0ex}%
+   \begin{adjustwidth*}{30pt}{30pt}}%
+  {\setlength{\baselineskip}{\stdleading}%
+   \setlength{\parindent}{0ex}%
+   \setlength{\parskip}{\bigparskip}%
+   \end{adjustwidth*}%
+   \pagestyle{default}%
+   \thispagestyle{article}
+}
