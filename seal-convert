@@ -39,6 +39,11 @@ class Seal
                                    'index.tex' ), 'w' )
     contents = []
     @albums.each do |album|
+      if album.nil?
+        contents << [ nil, nil ]
+        next
+      end
+      
       songs = @data[ album ]
       next if songs.empty?
       
@@ -81,10 +86,14 @@ EOS
 
         if i + half < contents.size
           number, title = contents[i+half]
-
-          toc << <<EOS
+          if number.nil? || title.nil?
+            # spacing between albums and misc. sections
+            toc << "&"
+          else
+            toc << <<EOS
 \\textbf{#{number}}$\\quad$#{title} & \\emph{\\pageref{album:#{number}}}
 EOS
+          end
         else
           toc << "&"
         end

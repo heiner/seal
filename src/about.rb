@@ -7,7 +7,7 @@ class Seal
   DATE = SVN_DATE.match( /.*\((.*)\).*/ )[ 1 ]
   REV  = REVISION.match( /(\d+)/ )[ 1 ].to_i
 
-  SNAPSHOT = 5
+  SNAPSHOT = 6
   VERSION  = "0.1-pre (snapshot #{SNAPSHOT}/revision #{REV})"
 
   LICENSE = <<EOS

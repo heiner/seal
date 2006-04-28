@@ -443,7 +443,7 @@ class AlbumBuilder
     outtake_mode = false
     @songs.each do |song|
       if song.nil?
-        self << "\\end{tabular}\n\\begin{tabular}{rl}"
+        self << "\\end{tabular}\n\\begin{tabular}{r>{\\raggedright}p{20em}}"
         next
       end
       case SongConverter::song_type( song )
@@ -478,8 +478,9 @@ class AlbumBuilder
 
     intro_tag = REXML::XPath::first( doc, "//div[ @id='intro' ]" )
     if not intro_tag.nil?
-      self << "\\vspace*\\fill\n"
+      self << "\\vspace*\\fill\n\\begin{articlelayout}"
       next_tag( intro_tag ) # from module Converting, writes to self
+      self << "\n\\end{articlelayout}\n"
     end
 
     self << "\\cleardoublepage\n"
@@ -636,7 +637,7 @@ class AlbumBuilder
 
 \\vspace{10ex}
 
-\\begin{tabular}{rl}
+\\begin{tabular}{r>{\\raggedright}p{20em}}
 EOS
 
     doc
