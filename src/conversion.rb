@@ -37,7 +37,6 @@ module Converting
       Seal::out << "Convert #{Converting::nicepath(src)} ... "
     end
     begin
-      # maybe we want a zip file?
       ifile = File::new( src,  'r' )
       ofile = File::new( dest, 'w' )
       convert( ifile, ofile )
@@ -158,6 +157,8 @@ module Converting
         url_pdf = File::join( 'graphics', File::basename( image ) )
         url_ps  = File::chopext( url_pdf ) + '.eps'
         ostring << "\\image{#{url_pdf}}{#{url_ps}}"
+      when 'abbr' # we don't to nothing
+        ostring << '{' << convert_paragraph( child ) << '}'
       else
         raise ConversionError, "Unexpected tag #{child.name}"
       end

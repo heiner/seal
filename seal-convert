@@ -20,7 +20,7 @@ class Seal
   end
 
   def Seal::exit( state=0 )
-    exit( state )
+    Kernel::exit( state )
   end
 
   def initialize( options )
@@ -53,7 +53,12 @@ class Seal
       index_html  = File::join( @options[ :source ], dir, "index.htm" )
       destination = File::join( @options[ :destination ], dir )
 
-      @albumbuilder.convert_album( album, index_html, destination, songs )
+      begin
+        @albumbuilder.convert_album( album, index_html, destination, songs )
+      rescue Errno::ENOENT => e
+        Seal::err << e.to_s << "\n" << "Please check your data/songs.yaml and data/albums.yaml files\n"
+        Seal::exit( 3 )
+      end
       index << "\\input{" << File::join( dir, "index#{ext}.tex" ) << "}\n"
       contents << [ @albumbuilder.number, @albumbuilder.title ]
     end
@@ -75,6 +80,7 @@ class Seal
 &&&&\\tabularnewline
 &&&&\\tabularnewline
 Preface & \\emph{\\pageref{preface}}&&&\\tabularnewline
+Roadmaps for the Soul & \\emph{\\pageref{roadmaps}}&&&\\tabularnewline
 EOS
   
       half = contents.size.quo(2).ceil
