@@ -1,14 +1,16 @@
 
 class Seal
-  REVISION = "$Revision$"
+#  REVISION = "$Revision$"
   SVN_DATE = "$Date$"
   SVN_ID   = "$Id$"
 
-  DATE = SVN_DATE.match( /.*\((.*)\).*/ )[ 1 ]
-  REV  = REVISION.match( /(\d+)/ )[ 1 ].to_i
+#  DATE = SVN_DATE.match( /.*\((.*)\).*/ )[ 1 ]
+#  REV  = REVISION.match( /(\d+)/ )[ 1 ].to_i
 
-  SNAPSHOT = 6
-  VERSION  = "0.1-pre (snapshot #{SNAPSHOT}/revision #{REV})"
+#  SNAPSHOT = 6
+  require 'src/snapshot'
+  VERSION  = "0.1-pre (revision #{REVISION})"
+  DATE = ::DATE
 
   LICENSE = <<EOS
 This program is distributed under the terms of the BSD License.
