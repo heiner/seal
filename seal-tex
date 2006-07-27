@@ -15,6 +15,7 @@ class Seal
       if RUBY_PLATFORM =~ /mswin/i
         tex_cmd = "pdflatex mbpbook"
       else
+        @options[ :ps ] = true
         tex_cmd = "latex mbpbook"
       end
     else
