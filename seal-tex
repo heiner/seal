@@ -69,7 +69,8 @@ seal #{Seal::VERSION} from #{Seal::DATE}
 Usage: seal-tex [options] [directory]
 
 seal-tex is a simple command line tool to TeX
-the Dylanchords LaTeX files
+the Dylanchords LaTeX files that seal-convert
+has created.
 
 Options:
 EOS
@@ -107,7 +108,12 @@ EOS
     exit( 1 )
   end
 
-  options[ :directory ] = ARGV.shift||File::join( Dir::pwd, 'book' )
+  options[ :directory ] = ARGV.shift||'book'
+  if not File::exists?( options[ :directory ] )
+    $stderr << "Error: Directory `#{options[ :directory ]}' not found. " \
+         "Did you run seal-convert?\n"
+    exit( 2 )
+  end
 
   seal = Seal.new( options )
 
