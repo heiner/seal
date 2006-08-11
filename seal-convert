@@ -121,7 +121,7 @@ EOS
       if @options[ :force ] or ask( "Directory `#{dest}' exists. Overwrite?" )
         rm_rf( Dir::glob( File::join( dest, "*[^~]" ) ) )
       else
-        Seal::err << 'Abort.'
+        Seal::err << "Abort.\n"
         Seal::exit( 2 )
       end
     else
@@ -152,6 +152,14 @@ EOS
 Typeset using \\LaTeX\\ on \\today.}
 \\end{flushleft}
 EOS
+    end
+
+    return if @options[ :config ].empty?
+    config = File::join( dest, 'config.tex' )
+    File::open( config, "w" ) do |config|
+      @options[ :config ].each do |option|
+        config << option << "\n"
+      end
     end
   end
 
@@ -213,6 +221,19 @@ EOS
     end
     opts.on( "-q", "--[no-]quiet", "Don't write what is going on" ) do |q|
       options[ :quiet ] = q
+    end
+    opts.on( "-o", "--options [list]", String,
+             "Set a configuration option" ) do |list|
+      options[ :config ] = []
+      list.scan( /\w+/ ) do |option|
+        case option
+        when 'openright', 'openleft', 'openany'
+          options[ :config ] << "\\" + option
+        else
+          Seal::err << "Unknown configuration option: `#{option}'\n"
+          Seal::exit( 4 )
+        end
+      end
     end
 
     opts.on_tail # separator

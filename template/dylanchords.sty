@@ -104,7 +104,7 @@
 \newcommand{\capssong}[1]{\textsc{\MakeLowercase{#1}}}
 \newcommand{\boldalbum}[1]{\textbf{#1}}
 
-\definecolor{songcolor}{rgb}{.3,.3,.4}
+\definecolor{songcolor}{rgb}{.5,.5,.5}
 
 \newlength{\bigparindent}
 \setlength{\bigparindent}{\parindent}
@@ -128,7 +128,7 @@
 
 % To get around special characters
 \newcommand{\songlbl}[2]{
-  \newpage
+  \clearforchapter
   \def\thesong{#1}
   \phantomsection
   \label{song:#2}

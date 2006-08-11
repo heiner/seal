@@ -475,16 +475,16 @@ class AlbumBuilder
         convert_song( song, prefix )
       end
     end
-    self << "\\end{tabular}\n\\end{flushright}\n\n\\newpage"
+    self << "\\end{tabular}\n\\end{flushright}\n\n"
 
     intro_tag = REXML::XPath::first( doc, "//div[ @id='intro' ]" )
     if not intro_tag.nil?
-      self << "\\vspace*\\fill\n\\begin{articlelayout}"
+      self << "\\newpage\n\\vspace*\\fill\n\\begin{articlelayout}"
       next_tag( intro_tag ) # from module Converting, writes to self
       self << "\n\\end{articlelayout}\n"
     end
 
-    self << "\\cleardoublepage\n"
+    self << "\\clearpage\n"
     inputs.each do |path|
       self << "\\input{#{path}}\n"
     end
@@ -603,6 +603,7 @@ class AlbumBuilder
         @title = $1
       end
 
+      @title.strip!
       @title.gsub!("&", "\\\\&")
       @title.gsub!( /"([^"]*)"/, "``\\1''" ) # "
 
