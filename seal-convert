@@ -154,7 +154,7 @@ Typeset using \\LaTeX\\ on \\today.}
 EOS
     end
 
-    return if @options[ :config ].empty?
+    return if @options[ :config ].nil? or @options[ :config ].empty?
     config = File::join( dest, 'config.tex' )
     File::open( config, "w" ) do |config|
       @options[ :config ].each do |option|
