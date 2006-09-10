@@ -1,13 +1,15 @@
-\documentclass[a4paper,twoside]{memoir}
-\usepackage{alltt}
-\usepackage{dylanchords}
 
-% \documentclass[10pt]{article}
-% \usepackage{fullpage, alltt, color}
-% \setlength{\parskip}{1ex}
-% \setlength{\parindent}{0ex}
-% \title{}
-\begin{document}
+\phantomsection
+\thispagestyle{empty}
+\pdfbookmark{Harp Keys}{harpkeys}
+\label{harpkeys}
+
+\vspace*{20ex}
+
+\begin{articlelayout}
+\begin{flushright}{\Huge Harp Keys}\end{flushright}
+
+\vspace{10ex}
 
 \definecolor{G}{rgb}{.9,.5,0}
 %\definecolor{Ab}{rgb}{}
@@ -28,15 +30,11 @@
 \newcommand{\D}{\textcolor{D}{\textbf{D}}}
 \newcommand{\E}{\textcolor{E}{\textbf{E}}}
 
-\section*{Dylan harp keys }
+\noindent \textit{Christer Svensson has compiled a list of the keys of all
+the Dylan songs featuring a harp on the official albums. Very impressive
+work! I haven't double-checked it, but it seems right.}
 
-\emph{Christer Svensson has compiled a list of the keys of all the
-Dylan songs featuring a harp on the official albums. Very impressive
-work! I haven't double-checked it, but it seems right.
-%It is at the same time a great exercise in Dylan acronyms...
-}
-
-\emph{The list was updated March 1, 2003}
+%\emph{The list was updated March 1, 2003}
 
 \subsubsection*{General remarks}
 
@@ -45,10 +43,10 @@ key is the same as the guitar or piano or backing group (this is known
 as first position), I'll just write the key name. If he's playing in
 second (also known as cross) position, or if the song is in a minor
 key and he's playing in fourth position, I'll give you the real
-key first and then the harp key, divided by a slash. E.g. \G means
-the song is in the key of G using a \G~harp. G/\C means the song is
+key first and then the harp key, divided by a slash. E.g. \G\ means
+the song is in the key of G using a \G~harp. G/\C\ means the song is
 in the key of G using a \C~harp in second aka crossed
-position. Eminor/\G means the song is in the key of Eminor using a
+position. Eminor/\G\ means the song is in the key of Eminor using a
 \G~harp in 4th position. Blues players sometimes use 3rd position, \C
 harp in the key of D for example. I don't think I've heard Dylan use
 3rd position, though.
@@ -65,11 +63,18 @@ draw..
 
 These are the relationships between harp and backing for second and
 fourth positions:
-\begin{alltt}
-Harp:    \G Ab \A Bb B \C Db \D Eb \E F F#
-2nd pos: D Eb E F F# G Ab A Bb B C Db
-4th pos: E F F# G Ab A Bb B C Db D Eb
-\end{alltt}
+%\begin{alltt}
+%Harp:    \G Ab \A Bb B \C Db \D Eb \E F F#
+%2nd pos: D Eb E F F# G Ab A Bb B C Db
+%4th pos: E F F# G Ab A Bb B C Db D Eb
+%\end{alltt}
+
+\begin{center}\begin{tabular}{llccccccccccc}
+Harp & \G & A$\flat$ & \A & B$\flat$ & B & \C & D$\flat$ & \D & E$\flat$ & \E & F& F$\sharp$\tabularnewline
+2nd pos & D & E$\flat$ & E & F & F$\sharp$ & G & A$\flat$ & A & B$\flat$ & B & C & D$\flat$\tabularnewline
+3rd pos & E & F & F$\sharp$ & G & A$\flat$ & A & D$\flat$ & B & C & D$\flat$ & D & E$\flat$\tabularnewline
+\end{tabular}\end{center}
+
 \subsubsection*{Harp keys by album}
 
 \subsection{BOB DYLAN}
@@ -102,7 +107,7 @@ Restless Farewell: E/\A
 
 
  \subsection{ANOTHER SIDE}
-All I Really Want To Do: \A\\ Black Crow Blues: G/\C\\ Chimes of Freedom: \G\\ I Shall Be Free \#10: \G\\ To Ramona: \C,\\
+All I Really Want To Do: \A\\ Black Crow Blues: G/\C\\ Chimes of Freedom: \G\\ I Shall Be Free $\sharp$10: \G\\ To Ramona: \C,\\
  I Don't Believe You: D/\G\\ Ballad in Plain D: D/\G\\ It Ain't Me Babe: \G
 
 
@@ -112,7 +117,7 @@ Subterranean Homesick Blues: A/\D\\ She Belongs To Me: A/\D\\ Maggie's Farm: G/\
 
 
 \subsection{HIGHWAY 61}
-Like A Rolling Stone: \C\\ Iit Takes a Lot to Laugh, It Takes a Train to Cry: Ab/Db\\
+Like A Rolling Stone: \C\\ Iit Takes a Lot to Laugh, It Takes a Train to Cry: A$\flat$/D$\flat$\\
 From a Buick 6: C/F\\ Queen Jane Approximately: \C,
 Just Like Tom Thumb's Blues: G/\C\\ Desolation Row: \E
 
@@ -128,8 +133,8 @@ Charlie McCoy knows?}\\ 4th Time Around: \E\\ Obviously 5 Believers: A/\D
 
 
 \subsection{JOHN WESLEY HARDING}
-John Wesley Harding: F\\ As I Went Out One Morning: F\#minor/\A\\ I Dreamed I Saw Saint Augustine: F,\\
-All Along The Watchtower: C\#minor/\E\\ Frankie Lee and Judas Priest: C/F\\ Drifter's Escape: A/\D\\ I Am A Lonesome Hobo: G/\C\\ I Pity The  Poor Immigrant: F\\ The Wicked Messenger: A/\D,
+John Wesley Harding: F\\ As I Went Out One Morning: F$\sharp$minor/\A\\ I Dreamed I Saw Saint Augustine: F,\\
+All Along The Watchtower: C$\sharp$minor/\E\\ Frankie Lee and Judas Priest: C/F\\ Drifter's Escape: A/\D\\ I Am A Lonesome Hobo: G/\C\\ I Pity The  Poor Immigrant: F\\ The Wicked Messenger: A/\D,
 Down Along The Cove: B/\E\\ I'll Be Your Baby Tonight: F/B$\flat$
 
 
@@ -171,7 +176,7 @@ Don't Think Twice: \C\\ Just Like A Woman: G/\C
 
 \subsection{BLOOD ON THE TRACKS}
 Tangled Up In Blue: \A\\ Simple Twist Of Fate: E/\A\\ You're A Big Girl Now: \G\\ Idiot Wind: \G,
-You're Gonna Make Me Lonesome When You Go: \E\\ Lily, Rosemary and the Jack of Hearts: \D (high octave)\\ Shelter From The Storm: \E
+You're Gonna Make Me Lonesome When You Go: \E\\ Lily, Rosemary and the Jack of Hearts: \D\ (high octave)\\ Shelter From The Storm: \E
 
 
 \subsection{DESIRE}
@@ -192,7 +197,7 @@ In The Summertime: \A\\ Every Grain Of Sand: E$\flat$
 
 
 \subsection{INFIDELS}
-Jokerman: B$\flat$/E$\flat$\\ Licence To Kill: F\#\\ Man Of Peace: B$\flat$/E$\flat$\\ Don't Fall Apart On Me Tonight: C/F
+Jokerman: B$\flat$/E$\flat$\\ Licence To Kill: F$\sharp$\\ Man Of Peace: B$\flat$/E$\flat$\\ Don't Fall Apart On Me Tonight: C/F
 
 
 \subsection{REAL LIVE}
@@ -208,7 +213,7 @@ Let's Stick Together: A/\D\\ Death Is Not the End: \A\\ Ugliest Girl in the Worl
 
 
 \subsection{OH MERCY}
-Everything Is Broken: E/\A\\ Man in the Long Black Coat: F\#minor/\A\\ What Was It You Wanted?: C\#minor/\E\\ Shooting Star: \E
+Everything Is Broken: E/\A\\ Man in the Long Black Coat: F$\sharp$minor/\A\\ What Was It You Wanted?: C$\sharp$minor/\E\\ Shooting Star: \E
 
 
 \subsection{UNDER THE RED SKY}
@@ -216,8 +221,8 @@ Unbelievable: E/\A
 
 
 \subsection{BIOGRAPH}
-I'll Keep It With Mine: \C\\ Percy's Song: D/\G\\ Mixed-Up Confusion\footnote{sounds like F\#/B on my
-record-player; was probably recorded in G/\C like the version issued
+I'll Keep It With Mine: \C\\ Percy's Song: D/\G\\ Mixed-Up Confusion\footnote{sounds like F$\sharp$/B on my
+record-player; was probably recorded in G/\C\ like the version issued
 on 45 rpm}\\ I Don't Believe You: \E\\ Visions Of Johanna: A/\D\\ You're A Big Girl Now: \E\\ Abandoned Love: \G\\ It's All Over Now Baby Blue: \D\\ Can You Please Crawl Out Your Window: G/\C,
 Isis: A/\D\\ Up To Me: \E\\ Baby I'm In The Mood For You: \G
 
@@ -225,10 +230,10 @@ Isis: A/\D\\ Up To Me: \E\\ Baby I'm In The Mood For You: \G
 \subsection{BOOTLEG SERIES}
 He Was A Friend Of Mine: \D\\ Man On The Street: G/\C\\ Talkin' Black Mountain Picnic Massacre Blues: \G\\ Ramblin' Gamblin' Willie: \C\\ Talkin' Hava Negeilah Blues: \G,
 Kingsport Town: \C\\ Walkin' Down The Line: \G\\ Walls Of Red Wing: \G\\ Paths Of Victory: B$\flat$\\ Talkin' John Birch Paranoid Blues: \G\\ Only A Hobo: \G\\ Moonshiner: \E,
-Suze: \E\\ Mama, You Been On My Mind: \E\\ Farewell Angelina: \G\\ Subterranean Homesick Blues: A/\D\\ If You Gotta Go, Go Now: G/\C\\ Like A Rolling Stone: Db,
-It Takes a Lot to Laugh, it Takes a Train to Cry: Ab/Db\\ If Not for You: \G\\ Wallflower: sounds like a low F\#,
+Suze: \E\\ Mama, You Been On My Mind: \E\\ Farewell Angelina: \G\\ Subterranean Homesick Blues: A/\D\\ If You Gotta Go, Go Now: G/\C\\ Like A Rolling Stone: D$\flat$,
+It Takes a Lot to Laugh, it Takes a Train to Cry: A$\flat$/D$\flat$\\ If Not for You: \G\\ Wallflower: sounds like a low F$\sharp$,
 probably recorded in \G\\ Tangled Up in Blue: \E\\ Idiot Wind: E/\A\\ If You See Her Say Hello: \E\\ Golden Loom: G/\C,
-Catfish: G/octave low \C (Hohner 12- or 14-hole Marine Band) played by
+Catfish: G/octave low \C\ (Hohner 12- or 14-hole Marine Band) played by
 Sugar Blue\\ Someone Got a Hold of My Heart: B\\ Lord, Protect my Child: \G\\ Foot of Pride: B
 
 
@@ -269,38 +274,38 @@ The Times They Are A-Changin'  \G\\
 Spanish Harlem Incident \G\\
 Talkin' John Birch Paranoid Blues \G\\
 To Ramona \D \\
-Gates of Eden \G \\
-If You Gotta Go, Go Now \G \\
-It's Alright Ma \G \\
-I Don't Believe you D/\G \\
+Gates of Eden \G\\
+If You Gotta Go, Go Now \G\\
+It's Alright Ma \G\\
+I Don't Believe you D/\G\\
 Mr Tambourine Man \E \\
-Talkin' World War III Blues \G \\
+Talkin' World War III Blues \G\\
 Don't Think Twice, It's All Right E/\A \\
 The Lonesome Death of Hattie Carroll \E\\
 Silver Dagger \G
 WGOOS - C
-It Ain't Me Babe \G \\
+It Ain't Me Babe \G\\
 All I Really Want To Do \C
 
 
 \subsection{The Bootleg Series, vol 7: No Direction Home}
 
 This Land Is Your Land: G/\C \\
-Sally Gal: \G {} with lots of lovely draw chord chugging on the D sections \\
-Man Of Constant Sorrow: \G \\
+Sally Gal: \G\ {} with lots of lovely draw chord chugging on the D sections \\
+Man Of Constant Sorrow: \G\\
 Blowin' In The Wind: \D \\
-When The Ship Comes In: \G \\
+When The Ship Comes In: \G\\
 Mr Tambourine Man: \E \\
-Chimes Of Freedom: \G \\
+Chimes Of Freedom: \G\\
 It's All Over Now, Baby Blue: \D \\
-Maggie's Farm: D/\G \\
+Maggie's Farm: D/\G\\
 It Takes A Lot To Laugh: A$\flat$/D$\flat$ \\
 Just Like Tom Thumb's Blues: G/\C \\
 Leopard-Skin Pill-Box Hat: A/\D \\
 Memphis Blues Again: E/\A \\
 Visions Of Johanna: A/\D \\
 Like A Rolling Stone: \C \\
-Carnegie Hall The Times, They Are A-Changin': \G \\
+Carnegie Hall The Times, They Are A-Changin': \G\\
 With God On Our Side: \C
 
 \subsection{Modern Times}
@@ -308,7 +313,7 @@ With God On Our Side: \C
 Spirit On The Water: B$\flat$/\E$\flat$
 
 
-\subsection*{45 rpm }
+\subsection*{45 rpm}
 
 Mixed-Up Confusion: G/\C, Corrinna Corrinna: F/B$\flat$
 
@@ -339,7 +344,7 @@ A Vision Shared: \\ Pretty Boy Floyd: \G
 Traveling Wilburys 1: \\ Handle With Care: \G
 
 
-Traveling Wilburys Shes My Baby: \\ Runaway: B$\flat$minor/Db\\ Nobodys
+Traveling Wilburys Shes My Baby: \\ Runaway: B$\flat$minor/D$\flat$\\ Nobodys
 Child: E$\flat$
 
 
@@ -351,11 +356,11 @@ For Our Children: \\ This Old Man: \C
 
 \subsection{Dylan as harp sideman}
 
-Carolyn Hester: \\ Ill Fly Away: E/\A (both published takes)\\ Swing
-And Turn Jubilee: \G\\ Come Back Baby: A/\D (both published takes)
+Carolyn Hester: \\ Ill Fly Away: E/\A\ (both published takes)\\ Swing
+And Turn Jubilee: \G\\ Come Back Baby: A/\D\ (both published takes)
 
 
-Harry Belafonte: \\ The Midnight Special: A/\D (both published takes)
+Harry Belafonte: \\ The Midnight Special: A/\D\ (both published takes)
 
 
 Three Kings And The Queen, with Big Joe Williams: \\ Sitting On Top Of
@@ -365,18 +370,18 @@ Kings And The Queen Volume Two: \\ Big Joe, Dylan And Victoria: G/\C\\
 Its Dangerous: G/\C
 
 
-Jack Elliott (Riverside Radio): \\ Acne: B (slowed down on CD, was \C
-on original tape)
+Jack Elliott (Riverside Radio): \\ Acne: B (slowed down on CD, was
+\C\ on original tape)
 
 
 Jack Elliott: \\ Will The Circle Be Unbroken: \D
 
 
 Dick Farina \& Eric von Schmidt: \\ (not absolutely certain if Dylan
-plays harp here)\\ Glory, Glory: G/\C (two harps heard)\\ Overseas
-Stomp: \C (prob. Eric)\\ You Can Always Tell: A/\D (two harps heard)\\
+plays harp here)\\ Glory, Glory: G/\C\ (two harps heard)\\ Overseas
+Stomp: \C\ (prob. Eric)\\ You Can Always Tell: A/\D\ (two harps heard)\\
 Xmas Island: C/F (two harps heard)\\ Cocaine: C/F (two harps heard)\\
-London Waltz: \C and C/F (two harps heard, no harp behind Erics and
+London Waltz: \C\ and C/F (two harps heard, no harp behind Erics and
 Dicks vocals)
 
 
@@ -395,8 +400,8 @@ Roger McGuinn: \\ Im So Restless: \G
 Booker T \& Priscilla Jones Chronicles: \\ The Crippled Crow: \G
 
 
-David Blue Comn Back For More: \\ Who Love: \E (Kreag Caffey?) and
-E/\A (Bob?)
+David Blue Comn Back For More: \\ Who Love: \E\ (Kreag Caffey?) and
+E/\A\ (Bob?)
 
 
 Keith Green So You Wanna Go Back To Egypt: \\ Pledge My Head To
@@ -412,7 +417,7 @@ Warren Zevon Sentimental Hygiene: \\ The Factory: \G
 
 Nanci Griffith Other Voices, Other Rooms: \\ Boots Of Spanish
 Leather: A/\D
-\subsection*{Books }
+\subsection*{Books}
 
 There's a book by Amy Appleby called \emph{The Harp Styles Of Bob
 Dylan}, which contains harp tabs to Blowin In The Wind, Don't Think
@@ -421,14 +426,13 @@ Woman, I Want You, I Shall Be Released, All Along The Watchtower, I'll
 Be Your Baby Tonight, Simple Twist Of Fate, Dark Eyes and What Was It
 You Wanted.
 
-\hrulefill
+%\hrulefill
 
-Well, this should keep you busy for a while. If you get really good
-at it, who knows, you might get hired to play for someone who needs
-his lung-power for singing at the moment.
+%Well, this should keep you busy for a while. If you get really good
+%at it, who knows, you might get hired to play for someone who needs
+%his lung-power for singing at the moment.
 
-Feel free to ask me if something is unclear.
+%Feel free to ask me if something is unclear.
 
-\emph{Christer Svensson}
-
-\end{document}
+%\emph{Christer Svensson}
+\end{articlelayout}

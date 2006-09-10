@@ -222,3 +222,10 @@
    \pagestyle{default}%
    \thispagestyle{article}
 }
+
+% ``Bringhurst-style'' footnotes
+\renewcommand{\footnoterule}{}
+\setlength{\footmarkwidth}{-1.0em}
+\setlength{\footmarksep}{-\footmarkwidth}
+\footmarkstyle{#1~}
+\renewcommand*{\@makefnmark}{\hbox{\textsuperscript{\@thefnmark}}}

@@ -81,6 +81,7 @@ class Seal
 &&&&\\tabularnewline
 Preface & \\emph{\\pageref{preface}}&&&\\tabularnewline
 Roadmaps for the Soul & \\emph{\\pageref{roadmaps}}&&&\\tabularnewline
+Harp Keys & \\emph{\\pageref{harpkeys}}&&&\\tabularnewline
 EOS
   
       half = contents.size.quo(2).ceil
@@ -154,7 +155,9 @@ Typeset using \\LaTeX\\ on \\today.}
 EOS
     end
 
-    return if @options[ :config ].nil? or @options[ :config ].empty?
+    if @options[ :config ].nil? or @options[ :config ].empty?
+      @options[ :config ] = "\\openany"
+    end
     config = File::join( dest, 'config.tex' )
     File::open( config, "w" ) do |config|
       @options[ :config ].each do |option|
@@ -196,7 +199,7 @@ if __FILE__ == $0
   require 'optparse'
   require 'src/about'
   
-  options = Hash.new
+  options = { :config => '\\openany' }
   opts = OptionParser.new do |opts|
     opts.banner = <<EOS
 seal #{Seal::VERSION} from #{Seal::DATE}

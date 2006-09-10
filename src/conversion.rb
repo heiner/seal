@@ -150,6 +150,14 @@ module Converting
         ostring << '\\emph{' << convert_paragraph( child ) << '}'
       when 'b', 'strong'
         ostring << '\\textbf{' << convert_paragraph( child ) << '}'
+      when 'tt'
+	ostring << '\\texttt{' << convert_paragraph( child ) << '}'
+      when 'u' # Should probably not occur
+	ostring << '\\underbar{' << convert_paragraph( child ) << '}'
+      when 'small' # Dito
+	ostring << '{\\small ' << convert_paragraph( child ) << '}'
+      when 'big' # Dito
+	ostring << '{\\large ' << convert_paragraph( child ) << '}'
       when 'pre'
         ostring << convert_preformatted( child )
       when 'img'
@@ -199,12 +207,22 @@ module Converting
     content = flatten( pre_tag )
     ostring = ""
 
-    case pre_tag.attributes[ 'class' ]
+    # No/poor support for things like <pre class="tab bridge"> # FIXME!
+    #if pre_tag.attributes[ 'class' ] =~ /.*\s.*/
+    #  $stderr << pre_tag.attributes[ 'class' ] << "\n"
+    #end
+    css_class = if pre_tag.attributes.has_key?( 'class' )
+		  pre_tag.attributes[ 'class' ].split.first
+		else
+		  nil
+		end
+    
+    case css_class
     when 'refrain', 'bridge', 'bridge2', 'bridge3', 'verse', 'spoken'
       # lyric with or without tabs
-      ostring << "\\begin{#{pre_tag.attributes['class']}}" \
+      ostring << "\\begin{#{css_class}}" \
               << "\\begin{pre}"
-      if pre_tag.attributes['class'] == 'spoken'
+      if css_class == 'spoken'
         ostring << "\\slshape"
       end
       ostring << "%\n"
@@ -227,7 +245,7 @@ module Converting
         end
       end
       
-      ostring << "\\end{pre}\\end{#{pre_tag.attributes['class']}}"
+      ostring << "\\end{pre}\\end{#{css_class}}"
 
     when 'tab'
       # a tab with all the numbers and dashes
@@ -250,8 +268,8 @@ module Converting
     when 'quote'
       ostring << "\\begin{quote}" << content << "\\end{quote}"
     else
-      # no class, or class='chords'
-      ostring << "\\begin{alltt}" << content.strip << "\\end{alltt}\n"
+      # no class, or class='chords'; no lstrip to be used!
+      ostring << "\\begin{alltt}" << content.rstrip << "\\end{alltt}\n"
     end
 
     return ostring
@@ -272,7 +290,7 @@ module Converting
 
   REPLACEMENTS = [
     # non-entity replacements
-    [ '\\', '\\bs' ],
+    [ '\\', '{\\bs}' ],
     #[ /^\[/, "{\\relax}[" ],
     #[ /\]\Z/, "{\\relax}]" ],
     [ "\303\230", '{\\O}' ],
@@ -444,7 +462,7 @@ class AlbumBuilder
     outtake_mode = false
     @songs.each do |song|
       if song.nil?
-        self << "\\end{tabular}\n\\begin{tabular}{r>{\\raggedright}p{20em}}"
+        self << "\\end{ctabular}\n\\begin{ctabular}[r]{r>{\\raggedright}p{20em}}"
         next
       end
       case SongConverter::song_type( song )
@@ -475,7 +493,7 @@ class AlbumBuilder
         convert_song( song, prefix )
       end
     end
-    self << "\\end{tabular}\n\\end{flushright}\n\n"
+    self << "\\end{ctabular}\n\\end{flushright}\n\n"
 
     intro_tag = REXML::XPath::first( doc, "//div[ @id='intro' ]" )
     if not intro_tag.nil?
@@ -502,6 +520,7 @@ class AlbumBuilder
     @songtitles[ File::basename( song, '.htm' ) ] = title
     #self << format_song_entry( song_path, prefix )
     ref = SongConverter::simplify( title )
+    # ctabular helps ... (still FIXME?)
     self << "#{prefix}\\pageref{song:#{ref}} & \\textsc{#{title}}\\tabularnewline\n"
   end
 
@@ -639,7 +658,7 @@ class AlbumBuilder
 
 \\vspace{10ex}
 
-\\begin{tabular}{r>{\\raggedright}p{20em}}
+\\begin{ctabular}[r]{r>{\\raggedright}p{20em}}
 EOS
 
     doc
