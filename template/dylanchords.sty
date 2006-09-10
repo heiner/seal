@@ -1,14 +1,31 @@
 
-% We use Palatino as the roman face.
-% Monospaced font is still CM
-% (fits well and is the most beautiful tt font anyway.)
+% General font commands
 \RequirePackage[T1]{fontenc}
 \RequirePackage{textcomp}
+
+% Palatino with OSF is our default font.
+% (most fitting font we can expect to be available)
 \RequirePackage[osf]{mathpazo}
+
+% Standard cmtt is our monospaced font. No command needed.
+
+% Other options:
+
+% Older TeX distributions don't have the OSFs.
+% We have to use `normal' Palationo, then.
 %\RequirePackage{mathpazo}
+
+% Goudy, Adobe version. Fits well.
 %\renewcommand{\rmdefault}{pgyj}
 
-% All the stuff we need ...
+% URW Letter Gothic. A monospaced font,
+% less typewriter-like then cmtt.
+% Available from
+% http://www.tug.org/tex-archive/nonfree/fonts/urw/lettergothic/
+%\RequirePackage{ulgothic}
+
+% End of font commands
+
 \RequirePackage{color}
 \RequirePackage{soul}
 \RequirePackage{graphicx}
@@ -173,8 +190,6 @@
      \small}%
     \item[]}
    {\end{list}}
-
-% added for seal 0.1
 
 \newenvironment{refrain}{\begin{quote}}{\end{quote}}
 \newenvironment{bridge}{\begin{quote}}{\end{quote}}
