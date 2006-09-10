@@ -674,6 +674,17 @@
   - "../07_bob/visions_of_johanna.htm@"
   - "../06_hwy61/ballad_of_a_thin_man.htm@"
   - "../06_hwy61/like_a_rolling_stone.htm@"
+45_modern:
+  - thunder.html
+  - spirit.html
+  - rollin-and-tumblin.html
+  - when-the-deal.html
+  - someday-baby.html
+  - workingman.html
+  - beyond-the-horizon.html
+  - nettie_moore.html
+  - levee-gonna-break.html
+  - aint-talkin.html
 others: []
 00_misc#early: 
   - two_sisters.htm
@@ -857,6 +868,7 @@ others: []
   - cross_the_green_mountain.htm
   - diamond_joe2.htm
   - dixie.htm
+  - tell_ol_bill.htm
 00_misc#live:
   - enough_is_enough.htm
   - why_do_i_have_to_choose.htm
