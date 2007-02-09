@@ -497,7 +497,7 @@ class AlbumBuilder
 
     intro_tag = REXML::XPath::first( doc, "//div[ @id='intro' ]" )
     if not intro_tag.nil?
-      self << "\\newpage\n\\vspace*\\fill\n\\begin{articlelayout}"
+      self << "\\newpage\\begin{articlelayout}\n\\vspace*\\fill\n"
       next_tag( intro_tag ) # from module Converting, writes to self
       self << "\n\\end{articlelayout}\n"
     end

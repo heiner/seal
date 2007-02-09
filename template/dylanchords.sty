@@ -11,10 +11,12 @@
 
 % Other options:
 
+%% (1)
 % Older TeX distributions don't have the OSFs.
 % We have to use `normal' Palationo, then.
 %\RequirePackage{mathpazo}
 
+%% (2)
 % The default Computer Modern isn't bad, too. It's too
 % `mathematical' for Eyolf, but that doesn't mean you
 % won't like it. Just uncommand any font command here,
@@ -22,16 +24,11 @@
 % Yet better: Use the hfoldsty package from CTAN. This
 % gives CM with old style nums.
 %\RequirePackage{hfoldsty}
-%\RequirePackage{lmodern}
 
+%% (3)
 % As roman/italic: Goudy, Adobe version. Fits well.
-%\renewcommand{\rmdefault}{pgyj}
 
-% URW Letter Gothic. A monospaced font,
-% less typewriter-like then cmtt.
-% Available from
-% http://www.tug.org/tex-archive/nonfree/fonts/urw/lettergothic/
-%\RequirePackage{ulgothic}
+%\renewcommand{\rmdefault}{pgyj}
 
 % Minion Pro: Fantastic font, and available at no charge,
 % because it's included in the Adobe Acrobat Reader 7.0.
@@ -42,8 +39,15 @@
 %\usepackage{MinionPro}
 %\usepackage{microtype}
 
-% And maybe Courier as monospaced font?
-\usepackage{courier}
+%% Also:
+% URW Letter Gothic. A monospaced font,
+% less typewriter-like then cmtt.
+% Available from
+% http://www.tug.org/tex-archive/nonfree/fonts/urw/lettergothic/
+%\RequirePackage{ulgothic}
+
+% Or maybe Courier as monospaced font?
+%\usepackage{courier}
 
 % End of font commands
 
@@ -229,17 +233,70 @@
 \setlength{\bigleading}{\baselineskip}
 \addtolength{\bigleading}{0.2ex}
 
+% Code to change the page layout for Eyolf's articles
+
+%%% Literally taken from the chngpage package by Peter R. Wilson:
+%%% http://ftp.ktug.or.kr/tex-archive/macros/latex/contrib/misc/chngpage.sty
+%%%
+%% copy of some of the code from the ifmtarg package to save requiring ifmtarg
+\begingroup
+\catcode`\Q=3
+\long\gdef\@ifmtarg#1{\@xifmtarg#1QQ\@secondoftwo\@firstoftwo\@nil}
+\long\gdef\@xifmtarg#1#2Q#3#4#5\@nil{#4}
+\endgroup
+
+%% set the page output parameters
+%\newcommand{\ch@ngetext}{%
+\DeclareRobustCommand{\ch@ngetext}{%
+  \setlength{\@colht}{\textheight}\setlength{\@colroom}{\textheight}%
+  \setlength{\vsize}{\textheight}\setlength{\columnwidth}{\textwidth}%
+  \if@twocolumn%
+    \advance\columnwidth-\columnsep \divide\columnwidth\tw@%
+    \@firstcolumntrue%
+  \fi%
+  \setlength{\hsize}{\columnwidth}%
+  \setlength{\linewidth}{\hsize}%
+}
+
+%\newcommand{\changetext}[5]{%
+\DeclareRobustCommand{\changetext}[5]{%
+  \@ifmtarg{#1}{}{\addtolength{\textheight}{#1}}%
+  \@ifmtarg{#2}{}{\addtolength{\textwidth}{#2}}%
+  \@ifmtarg{#3}{}{\addtolength{\evensidemargin}{#3}}%
+  \@ifmtarg{#4}{}{\addtolength{\oddsidemargin}{#4}}%
+  \@ifmtarg{#5}{}{\addtolength{\columnsep}{#5}}%
+  \ch@ngetext%
+}
+
+%\newcommand{\changepage}[9]{%
+\DeclareRobustCommand{\changepage}[9]{%
+  \@ifmtarg{#1}{}{\addtolength{\textheight}{#1}}%
+  \@ifmtarg{#2}{}{\addtolength{\textwidth}{#2}}%
+  \@ifmtarg{#3}{}{\addtolength{\evensidemargin}{#3}}%
+  \@ifmtarg{#4}{}{\addtolength{\oddsidemargin}{#4}}%
+  \@ifmtarg{#5}{}{\addtolength{\columnsep}{#5}}%
+  \ch@ngetext%
+  \@ifmtarg{#6}{}{\addtolength{\topmargin}{#6}}%
+  \@ifmtarg{#7}{}{\addtolength{\headheight}{#7}}%
+  \@ifmtarg{#8}{}{\addtolength{\headsep}{#8}}%
+  \@ifmtarg{#9}{}{\addtolength{\footskip}{#9}}%
+}
+%%%
+%%% End of copy of chngpage
+
 \newenvironment{articlelayout}%
   {\pagestyle{article}%
+   \thispagestyle{article}%
    \setlength{\baselineskip}{\bigleading}%
    \setlength{\parindent}{\bigparindent}%
    \setlength{\parskip}{0ex}%
-   \begin{adjustwidth*}{30pt}{30pt}}%
-   %\setlength{\textwidth}{3in}}
+   \changetext{0pt}{-5em}{5em}{}{}%
+  }%
+
   {\setlength{\baselineskip}{\stdleading}%
    \setlength{\parindent}{0ex}%
    \setlength{\parskip}{\bigparskip}%
-   \end{adjustwidth*}%
+   \changetext{0pt}{5em}{-5em}{}{}%
    \pagestyle{default}%
    \thispagestyle{article}
 }
