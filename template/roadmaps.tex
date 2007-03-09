@@ -214,13 +214,13 @@ looks less ugly.
 \paragraph*{Chord names.} In general I use the following system
 (exemplified with C chords throughout): Major chords: C. Minor chords:
 Cm. The following table explains the additional symbols and chord
-types. All the examples are variants of C. Third = the third note of
-the scale from the key note, fifth = the fifth note of the scale,
+types. All the examples are variants of C. Third $=$ the third note of
+the scale from the key note, fifth $=$ the fifth note of the scale,
 etc. Since there are only seven different steps in the scale, the
 second is the same as the ninth, the fourth is the same as the
 eleventh etc. In chord names one will usually use the higher of these,
 except where the basic triad is altered;~ e.g. C9 and not C2 (but
-Csus4 and Cm7-5). The reason for this is that all chords are considered as stacks of thirds over the keynote. The simplest chords consist of the first two thirds, so C = c-e-g. All the more ``{}sophisticated''{}
+Csus4 and Cm7-5). The reason for this is that all chords are considered as stacks of thirds over the keynote. The simplest chords consist of the first two thirds, so C $=$ c-e-g. All the more ``{}sophisticated''{}
 chords are considered as extensions of the basic chord with selections
 from the stack of thirds above it: c-e-g continues B$\flat$-d-f-a,
 which are the 7th, the 9th, the 11th and the 13th. The convention is
@@ -243,8 +243,8 @@ the tones in the stack, up to the eleventh, thus: c-e-g-b$\flat$-d-f.
 
 %% From memman.tex, copied blind.
 % Symbol / Name / Example; then Meaning
-\newcommand{\chordexpl}[3]{\vspace{1ex}{\noindent
-    \setbox0\hbox{\Huge #1~~}%
+\newcommand{\chordexpl}[3]{\vspace{1ex}\begin{center}{
+    \setbox0\hbox{\Huge #1~}%
     \count0=\ht0                   % height of versal
     \count1=\baselineskip          % baselineskip
     \divide\count0 by \count1      % versal height/baselineskip
@@ -252,101 +252,103 @@ the tones in the stack, up to the eleventh, thus: c-e-g-b$\flat$-d-f.
     \advance\count0 by 1\relax     % no of indented lines
     \dimen0=\wd0                   % width of versal
     \global\hangindent\dimen0      % set indentation distance
-    \global\hangafter-\count0      % set no of indented lines
+    \global\hangafter+0            % set no of indented lines
     \hskip-\dimen0\setbox0\hbox to\dimen0{\raise-\dimen1\box0\hss}%
     \dp0=0in\ht0=0in\box0}%
     \textit{#2}\\#3\par\nobreak%
+\end{center}
 }
 
-\begin{adjustwidth}{5em}{0em}
-
-\chordexpl{C7}{\textnormal{(}minor\textnormal{)} seventh}{x32310}
-\noindent The minor seventh is added to the root chord. Note that
+{\raggedbottom
+\chordexpl{C7}{\textnormal{(}minor\textnormal{)} seventh}{x32310}\par
+{\raggedright \small The minor seventh is added to the root chord. Note that
 ``minor'' here refers to the tone on the seventh step (which can be both
 major and minor: B$\flat$ and B), not to the chord itself i.e., it is a chord
 with a minor seventh, not a minor chord with a seventh -- cf. the ``m7'' chord
 below. Note also that ``7'' alone always refers to the \emph{minor} seventh. If the
-major seventh is used, it has to be specified with ``maj7''. The ``minor'' is usually left out of the name.
+major seventh is used, it has to be specified with ``maj7''. The
+``minor'' is usually left out of the name.}
 
-\chordexpl{Cmaj7}{major seventh}{x32000}
-\noindent The major seventh is added to the root
+\chordexpl{Cmaj7}{major seventh}{x32000}\par
+{\raggedright \small The major seventh is added to the root
 chord. Whereas the seventh chord usually has a dominant function,
 i.e. is used to lead back to the chord five steps lower (C7$\to$F), the
 major seventh is rather a colouring of the chord, without this
-``driving'' effect.
+``driving'' effect.}
 
-\chordexpl{Cm7}{---}{x35343}
-\noindent The (minor) seventh is added to the minor
-chord. Cf. the ``7'' chord above.
+\chordexpl{Cm7}{$\qquad$$\quad$}{x35343}\par
+{\raggedright \small The (minor) seventh is added to the minor
+chord. Cf. the ``7'' chord above.}
 
-\chordexpl{Cm7-5}{---}{x34340}
-\noindent The fifth of the m7 chord is lowered by a semitone.
+\chordexpl{Cm7-5}{$\qquad$$\quad$}{x34340}\par
+{\raggedright \small The fifth of the m7 chord is lowered by a semitone.}
 
-\chordexpl{C9}{ninth}{x32330}
-\noindent The ninth \emph{and} the seventh are added to the root
-chord.
+\chordexpl{C9}{$\;$ninth$\;$}{x32330}\par
+{\raggedright \small The ninth \emph{and} the seventh are added to the root
+chord.}
 
-\chordexpl{C+}{augmented}{x32110} % was "+ (aug)" in table
-\noindent The fifth is raised by a semitone (half
-step=one fret)
+\chordexpl{C+}{augmented}{x32110}\par % was "+ (aug)" in table
+{\raggedright \small The fifth is raised by a semitone (half
+step$=$one fret)}
 
-\chordexpl{Co}{diminished}{x34242} % was "o (dim)" in table
-\noindent A stack of minor thirds. Since all the intervals in the chord are
+\chordexpl{Co}{diminished}{x34242}\par % was "o (dim)" in table
+{\raggedright \small A stack of minor thirds. Since all the intervals in the chord are
 equal, any of the tones can function as root. Thus:
-Co=E$\flat$o=F$\sharp$o=Ao. Hence, there only exists three different dim chords.
+Co$=$E$\flat$o$=$F$\sharp$o$=$Ao. Hence, there only exists three different dim chords.}
 
-\chordexpl{C11}{eleventh}{x33333}
-\noindent The seventh, ninth and eleventh are added to the
+\chordexpl{C11}{eleventh}{x33333}\par
+{\raggedright \small The seventh, ninth and eleventh are added to the
 root chord. Since these three tones make up the chord on the tone one
 step below the root (for C: B$\flat$), this chord usually functions as a
-conflation of these two chords.
+conflation of these two chords.}
 
-\chordexpl{C6}{sixth}{x35555}
-\noindent The sixth is added to the root chord.
+\chordexpl{C6}{$\;$sixth$\;$}{x35555}\par
+{\raggedright \small The sixth is added to the root chord.}
 
-\chordexpl{Csus4}{suspended fourth}{x33010}
-\noindent The third is temporarily ``suspended'': raised to the fourth,
+\chordexpl{Csus4}{suspended fourth}{x33010}\par
+{\raggedright \small The third is temporarily ``suspended'': raised to the fourth,
 and left there hanging in wait for a resolution back to the root chord. Thus,
 in a true sus4 chord, the third is not included. If that were the case,
-the chord would be called add11 or add4. Note: the chord Cmsus4 is identical to Csus4 and might for this reason be considered redundant. But whereas the sounds are identical, the functions are not: the name indicates that this is \emph{in fact} a Cm chord, it's just a little indisposed at the moment.
+the chord would be called add11 or add4. Note: the chord Cmsus4 is identical to Csus4 and might for this reason be considered redundant. But whereas the sounds are identical, the functions are not: the name indicates that this is \emph{in fact} a Cm chord, it's just a little indisposed at the moment.}
 
-\chordexpl{Csus2}{---}{x30010}
-\noindent Same as the previous, only that the third ``hangs'' below, on
-the second.
+\chordexpl{Csus2}{$\qquad$$\quad$}{x30010}\par
+{\raggedright \small Same as the previous, only that the third ``hangs'' below, on
+the second.}
 
-\chordexpl{C7-10}{---}{x3234x}
-\noindent The blues chord \emph{par exellence}. Since it contains both
+\chordexpl{C7-10}{$\qquad$$\quad$}{x3234x}\par
+{\raggedright \small The blues chord \emph{par exellence}. Since it contains both
 the major and the minor third, the chord corresponds to the ambiguity
 of the third step in the blues scale.  This chord is usually called
 7+9 (or 7\#9), but since the extra tone really functions as a low third
-(=tenth) and not a raised second, I prefer the name 7-10 (the raised
+($=$tenth) and not a raised second, I prefer the name 7-10 (the raised
 ninth and the lowered tenth are of course the same tone on the guitar,
-although they are functionally different. Subtleties, subtleties!).
+although they are functionally different. Subtleties, subtleties!).}
 
-\chordexpl{Cadd\textit{x}}{---}{}
-\noindent Any added tone that does not fall within the stack of
+\pagebreak[3]
+
+\chordexpl{Cadd\textit{x}}{}{}\nopagebreak[4]\par\vspace{1em}
+{\raggedright \small Any added tone that does not fall within the stack of
 thirds upon which the rest of the system is based. A special case is chords containing tones which do belong to the stack, but not all the members below it. E.g., in the chord c-e-g-d (x32030), the d is the ninth, but since the seventh (b$\flat$) is missing, the chord must be called Cadd9 and not C9.
-Note the difference between Cadd9, which is a full C with an added d, and Csus2, which is a plain C major chord where the third is temporarily suspended downwards to d.
+Note the difference between Cadd9, which is a full C with an added d, and Csus2, which is a plain C major chord where the third is temporarily suspended downwards to d.}
 
-\chordexpl{C-\textit{x}/C+\textit{x}}{---}{}
-\noindent Lowers/raises a scale step by a semitone (one
+\chordexpl{C-\textit{x}/C+\textit{x}}{}{}\par\vspace{1em}
+{\raggedright \small Lowers/raises a scale step by a semitone (one
 fret). E.g. Cm7-5 and C7+13. Note: ``+'' does not mean that the 13th
-is added, but that it is raised.
+is added, but that it is raised.}
 
-\chordexpl{C5}{``Power chord''}{x355xx}
-\noindent A chord containing only the prime (the root) and the
+\chordexpl{C5}{``Power chord''}{x355xx}\par
+{\raggedright \small A chord containing only the prime (the root) and the
 fifth. In other words: a chord without the third. Since the third is
 the tone that defines whether a chord is major or minor, the ``power
-chord'' is neutral in this respect.
+chord'' is neutral in this respect.}
 
-\chordexpl{C(iii)}{---}{x35553}
-\noindent A chord in the third position, i.e. fingered so that
+\chordexpl{C(iii)}{$\qquad$$\quad$}{x35553}\par\global\hangafter+50
+{\raggedright \small A chord in the third position, i.e. fingered so that
 it begins on the third fret. Thus, the quality of the chord is not
 changed, only its sonority. (I have not been quite consistent
 concerning this notation, mostly due to the fact that the parentheses
-are space-consuming.)
-
-\end{adjustwidth}
+are space-consuming.)}
+}
 
 \bigskip
 
@@ -420,7 +422,7 @@ advantage of having the key note (A) on the highest string, thus
 emphasising it.
 
 In the same way we can find the fingering for the chord Bm7-5. First
-find the tones: Bm = b, d, f$\sharp$. Add the 7th (a) and lower the
+find the tones: Bm $=$ b, d, f$\sharp$. Add the 7th (a) and lower the
 5th (f$\sharp$ $\to$ f), and we have the tones b, d, f and a.
 
 \begin{pre}
@@ -712,7 +714,7 @@ always below the middle of the neck''{} rule is to ensure economy of means: a ma
 flexibility with a minimum of physical effort, but if you don't
 need to play chords like 243115, which you don't (it can be done,
 though\ldots{}), the most economical thing \emph{is} to use the
-thumb. The switch between C=332010 and F=133211 is much, much easier
+thumb. The switch between C$=$332010 and F$=$133211 is much, much easier
 and smoother with the thumb-F than with the barre-F. Again, you don't
 have to push very hard to get the sound you need. (Besides, there is
 no way on earth you are ever going to look as cool as Keith Richards
@@ -729,7 +731,7 @@ similar case is B flat, a terrible chord to finger the ordinary way
 This is not limited to ``{}standard''{} barre chords; a chord like A
 benefits strongly from a barre treatment (with or without the first
 string), both because it is easier, and because you can then easily
-switch to D/a=x04232. A half barre on the middle strings (A=x02220
+switch to D/a$=$x04232. A half barre on the middle strings (A$=$x02220
 with the index finger bent at the last joint) is a handy technique to
 have acquired.
 
@@ -754,7 +756,7 @@ instead\ldots{}
 
 
 \paragraph*{Dampening.} Sometimes you have to dampen some strings. To play
-G11=3x3211 you need both the sixth string, which is the only
+G11$=$3x3211 you need both the sixth string, which is the only
 \textbf{g} in there, and all the others, but you don't want the
 \textbf{a} on the fifth string. You have to mute it with the ring
 finger.
