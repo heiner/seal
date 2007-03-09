@@ -109,7 +109,7 @@
 \makeheadrule{default}{\headwidth}{\normalrulethickness}
 \makeheadposition{default}{flushright}{flushleft}{}{}
 \makeevenhead{default}%
-  {\boldalbum{\thealbum}}{}{}
+  {\textit{\thealbum}}{}{}
 \makeevenfoot{default}%
   {\normalfont\thepage}{}{}
 \makeoddhead{default}%
@@ -133,9 +133,14 @@
   {}{}{\normalfont\thepage}
 
 
-% ``How about a slightly bigger font size for the song titles?''
-%     -- EO, Feb 27, 2006
-\setsecheadstyle{\LARGE\bfseries\raggedright}
+\setsecheadstyle{\LARGE\scshape\raggedright\MakeLowercase}
+  \setbeforesecskip{-\onelineskip}
+  \setaftersecskip{\onelineskip}
+
+% Example code
+%\setsubsecheadstyle{\sethangfrom{\noindent ##1}\raggedright\itshape}
+%  \setbeforesubsecskip{-\onelineskip}
+%  \setaftersubsecskip{\onelineskip}
 
 % letterspacing command
 \sodef\ls{}{0.1em}{0.4em plus0.2em}{1em plus.1em minus .1em}
@@ -144,7 +149,6 @@
 \def\thealbum{}
 
 \newcommand{\capssong}[1]{\textsc{\MakeLowercase{#1}}}
-\newcommand{\boldalbum}[1]{\textbf{#1}}
 
 \definecolor{songcolor}{rgb}{.5,.5,.5}
 
