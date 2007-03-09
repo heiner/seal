@@ -1,8 +1,9 @@
 #!/bin/bash
 
-cd /tmp
-svn co file:///home/heiner/.repositories/seal/trunk seal
+ssh -T kuettler@www.math.tu-dresden.de <<EOS
+svn export file://$HOME/.repositories/seal/trunk $HOME/seal
 REVISION=`svnversion seal`
-echo REVISION=$REVISION";" DATE=\"`date -R`\" > seal/src/snapshot.rb
-zip -r seal-revision-$REVISION.zip seal
-mv seal-revision-$REVISION.zip $OLDPWD
+echo REVISION=$REVISION";" DATE=\"`date -R`\" > $HOME/seal/src/snapshot.rb
+zip -r $HOME/public_html/seal/snapshots/seal-revision-$REVISION.zip $HOME/seal/
+rm -rf $HOME/seal/
+EOS
