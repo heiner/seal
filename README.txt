@@ -1,13 +1,26 @@
 
-This is SEAL, a little program to build a book of songs by Bob
-Dylan. For instructions see
+This is SEAL, a program to build a book of Bob Dylan tunes.
 
-http://www.math.tu-dresden.de/~kuettler/seal/
+Quick start: Type into a terminal
+  ./seal-convert /path/to/dylanchords
+  ./seal-tex
+
+If you are a MS Windows user or you have problems, see
 http://www.dylanchords.com/seal-installation.htm
 
+The homepage of Seal is
+http://www.math.tu-dresden.de/~kuettler/seal/
 
-Seal Options
-------------
+Command line help
+-----------------
+
+Just type
+  ./seal-convert --help
+or
+  ./seal-tex --help
+
+Configuration Options
+---------------------
 
 Beginning with revision 82, seal-convert has configuration options
 that determine certain aspects of the output. Right now these are

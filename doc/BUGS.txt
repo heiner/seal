@@ -1,9 +1,6 @@
 
 Known bugs in Seal's output
 
-* The Roadmaps are not the way Eyolf wants them. We need vertical
-  moving lists, not the `---' stuff, and the chords table should become
-  page break compatible.
 * Page header in introduction of Freewheelin',
   Another Side, JWH, New Morning, `Dylan', Down in the Groove, 
   Live 66 (i.e., all one-page intros) are broken 
