@@ -174,7 +174,8 @@ B    799877    C    C#   D
 </pre>
 EOS
     pre_tags.last << <<EOS
-\\begin{alltt}E    x76454    F    F\\#   G
+\\begin{alltt}
+E    x76454    F    F\\#   G
 A    577655    Bb   B    C
 G\\#m  466444    Am   A\\#m  Bm
 B    799877    C    C\\#   D\\end{alltt}
@@ -344,8 +345,6 @@ EOS
 
     latex = <<EOS
 {\\footnotesize Recorded February 11--15 1980 --- Released June 20 1980}
-\\begin{tabular}{rl}
-\\end{tabular}
 EOS
     @builder.songs = []
     @builder.number = 23
