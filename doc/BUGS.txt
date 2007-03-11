@@ -7,9 +7,7 @@ Known bugs in Seal's output
 * Obviously 5 Believers has a too large tab
 * Intro to Self Portrait is buggy
 * Missing images in What can I do for you and Broke down engine
-* The design needs a cleanup. We could, for instance: (1) Only use
-  `lowercase' small caps, as Bringhurst does, and set the song titles 
-  in small caps everywhere, including the in headings.
+* The design needs a cleanup.
 
 Misc
 
