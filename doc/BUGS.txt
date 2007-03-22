@@ -1,13 +1,14 @@
 
 Known bugs in Seal's output
 
-* Page header in introduction of Freewheelin',
-  Another Side, JWH, New Morning, `Dylan', Down in the Groove, 
-  Live 66 (i.e., all one-page intros) are broken 
 * Obviously 5 Believers has a too large tab
 * Intro to Self Portrait is buggy
-* Missing images in What can I do for you and Broke down engine
-* The design needs a cleanup.
+* So is Blood on the Tracks, and any other more-than-one-page
+  introduction: The last page doesn't have the articlelayout.
+* Missing image in What can I do for you => New image handling?
+  (With <img id="lordy" ... />, for instance?
+* The design may need a cleanup. We want it beatiful!
+* No/poor support for things like <pre class="tab bridge">. Bad!
 
 Misc
 
