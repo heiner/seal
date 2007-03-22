@@ -152,7 +152,7 @@ module Converting
         ostring << '\\textbf{' << convert_paragraph( child ) << '}'
       when 'tt'
 	ostring << '\\texttt{' << convert_paragraph( child ) << '}'
-      when 'u' # Should probably not occur
+      when 'u' # Should not occur
 	ostring << '\\underbar{' << convert_paragraph( child ) << '}'
       when 'small' # Dito
 	ostring << '{\\small ' << convert_paragraph( child ) << '}'
@@ -162,10 +162,10 @@ module Converting
         ostring << convert_preformatted( child )
       when 'img'
         image = child.attributes['src']
-        url_pdf = File::join( 'graphics', File::basename( image ) )
-        url_ps  = File::chopext( url_pdf ) + '.eps'
-        ostring << "\\image{#{url_pdf}}{#{url_ps}}"
-      when 'abbr' # we don't to nothing
+        url = File::join( 'graphics', File::basename( image ) )
+        url = File::chopext( url )
+        ostring << "\\input{#{url}}"
+      when 'abbr' # we don't to anything with that
         ostring << '{' << convert_paragraph( child ) << '}'
       else
         raise ConversionError, "Unexpected tag #{child.name}"
