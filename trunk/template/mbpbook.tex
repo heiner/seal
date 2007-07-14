@@ -1,0 +1,39 @@
+\documentclass[a4paper,twoside]{memoir}
+\usepackage{alltt}
+\usepackage{dylanchords}
+
+\makeindex
+
+\IfFileExists{config.tex}{\input{config}}
+
+\begin{document}
+  \maketitle
+  
+  \input{about}
+
+  \pagestyle{default}
+
+  \include{contents}
+  \cleardoublepage
+  
+  \begin{articlelayout}
+  \include{preface}
+  \cleardoublepage
+  \include{roadmaps}
+  \cleardoublepage
+  \include{harpkeys}
+  \end{articlelayout}
+
+  \input{index}
+
+  \cleardoublepage
+
+  \phantomsection
+  \renewcommand{\indexname}{Song Index}
+  \label{songindex}
+  \pdfbookmark{Index}{index}
+  \pagestyle{plain}
+  \printindex
+  ~
+  \cleardoublepage
+\end{document}

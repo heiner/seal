@@ -1,0 +1,125 @@
+#!/usr/bin/env ruby
+# -*- ruby -*-
+
+class Seal
+
+  def initialize( options )
+    @options = options
+  end
+
+  def tex
+    Dir::chdir( @options[ :directory ] )
+
+    tex_cmds = []
+    if not @options.has_key?( :ps )
+      if RUBY_PLATFORM =~ /mswin/i
+        tex_cmd = "pdflatex mbpbook"
+      else
+        @options[ :ps ] = true
+        tex_cmd = "latex mbpbook"
+      end
+    else
+      if @options[ :ps ]
+        tex_cmd = "latex mbpbook"
+      else
+        tex_cmd = "pdflatex mbpbook"
+      end
+    end
+
+    makeindex_cmd = "makeindex mbpbook"
+    dvips_cmd = "dvips mbpbook -o"
+
+    run_command( tex_cmd )
+    if File::stat( "mbpbook.idx" ).zero?
+      # Only one LaTeX run isn't enough
+      # for older versions of the memoir
+      # class. What a pity.
+      $stderr << "Two LaTeX runs needed\n"
+      run_command( tex_cmd )
+    end
+    run_command( makeindex_cmd )
+    run_command( tex_cmd )
+    
+    if @options[ :ps ]
+      run_command( dvips_cmd )
+    end
+  end
+
+  def run_command( command )
+    if @options[ :quiet ]
+      `#{command}`
+    else
+      system( command )
+    end
+    if not ($? && $?.success?)
+      $stderr << "Error: command `#{command}' failed\n"
+      exit( 1 )
+    end
+  end
+  
+end
+
+if __FILE__ == $0
+  require 'optparse'
+  require 'src/about'
+  
+  options = Hash.new
+  opts = OptionParser.new do |opts|
+    opts.banner = <<EOS
+seal #{Seal::VERSION} from #{Seal::DATE}
+Usage: seal-tex [options] [directory]
+
+seal-tex is a simple command line tool to TeX
+the Dylanchords LaTeX files that seal-convert
+has created.
+
+Options:
+EOS
+
+    opts.version = Seal::VERSION
+
+    opts.on( "--pdf", "Create PDF output (default on MS Windows)" ) do
+      options[ :ps ] = false
+    end
+    opts.on( "--postscript", "Create PostScript output" ) do
+      options[ :ps ] = true
+    end
+    opts.on( "-v", "--[no-]verbose", "Write out what is going on" ) do |v|
+      options[ :quiet ] = !v
+    end
+    opts.on( "-q", "--[no-]quiet", "Don't write what is going on" ) do |q|
+      options[ :quiet ] = q
+    end
+
+    opts.on_tail # separator
+    opts.on_tail( "-h", "--help", "Show this message" ) do
+      puts opts
+      exit
+    end
+    opts.on_tail( "--copyright", "Show copyright (revised BSD License)" ) do
+      puts Seal::LICENSE
+      exit
+    end
+  end
+
+  begin
+    opts.parse!( ARGV )
+  rescue OptionParser::ParseError => error
+    puts error
+    exit( 1 )
+  end
+
+  options[ :directory ] = ARGV.shift||'book'
+  if not File::exists?( options[ :directory ] )
+    $stderr << "Error: Directory `#{options[ :directory ]}' not found. " \
+         "Did you run seal-convert?\n"
+    exit( 2 )
+  end
+
+  seal = Seal.new( options )
+
+  begin
+    seal.tex
+  rescue Interrupt
+  end
+end
