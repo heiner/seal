@@ -1,0 +1,163 @@
+#!/usr/bin/env ruby
+# -*- ruby -*-
+
+load 'seal-convert'
+load 'seal-tex'
+
+begin
+  require 'Qt'
+  require 'qui'
+rescue LoadError
+  Seal::err << "Error: You must have Ruby/Qt installed to run this program.\n"
+  exit( 3 )
+end
+
+class Seal 
+
+  class Connector < Qt::Object
+
+    slots 'browse()', 'convert()', 'tex()', 'about()', 'quit()',
+          'sourceChanged(const QString &)'
+
+    attr_accessor :widget, :seal
+
+    def browse
+      dirname = Qt::FileDialog.getExistingDirectory
+      unless dirname.nil?
+        @widget.child( "dylanchordsPath" ).setText( dirname )
+      end
+    end
+
+    def sourceChanged( dirname )
+      @seal.options[ :source ] = dirname
+      bool = !dirname.nil? and File::exists?( dirname )
+      @widget.child( "convertButton" ).setEnabled( bool )
+      @widget.child( "convertOutput" ).setEnabled( bool )
+
+      @widget.child( "texButton" ).setEnabled( false )
+      @widget.child( "texOutput" ).setEnabled( false )
+    end
+
+    def convert
+      @seal.convert
+      @widget.child( "texButton" ).setEnabled( true )
+      @widget.child( "texOutput" ).setEnabled( true )
+    end
+
+    def tex
+      $stdout = $widgetout
+      @seal.tex
+    end
+
+    def about
+      puts "about"
+    end
+
+    def quit
+      $qApp.exit
+    end
+  end
+
+  class WidgetIO
+    attr_accessor :widget
+
+    def initialize( w, color=Qt::black )
+      @widget = w
+    end
+
+    def write( string )
+      @widget.append( string )
+    end
+    alias :<< :write
+  end
+
+  def Seal::out
+    $widgetout
+  end
+
+  def Seal::err
+    $widgeterr
+  end
+
+  def Seal::exit( state=0 )
+    $qApp.closeAllWindows
+    Kernel::exit!( state )
+  end
+
+  attr_reader :options
+  
+  def initialize
+    @options = { :destination => 'book', :directory => 'book' }
+    
+    @connector = Connector.new
+    @connector.seal = self
+    @connector.widget = QUI::WidgetFactory::create( "src/gui.ui", @connector )
+    $widgetout = WidgetIO.new( @connector.widget.child( "convertOutput" ) )
+    $widgeterr = WidgetIO.new( @connector.widget.child( "convertOutput" ) )
+
+    # convertion
+    @data = YAML::load_file( File::join( RESIDENCE, 'data', 'songs.yaml' ) )
+    @albumbuilder = AlbumBuilder.new
+  end
+
+  def widget
+    @connector.widget
+  end
+
+  def ask( promt, default = 'n' )
+    yes = Qt::MessageBox::Yes
+    no  = Qt::MessageBox::No
+
+    if default == 'y'
+      yes |= Qt::MessageBox::Default
+    else
+      no  |= Qt::MessageBox::Default
+    end
+    
+    ans = Qt::MessageBox::question( @connector.widget, "Question",
+                                    promt, yes, no, Qt::MessageBox::NoButton )
+    ans == Qt::MessageBox::Yes
+  end
+
+end
+
+if __FILE__ == $0
+  require 'optparse'
+  require 'src/about'
+  
+  opts = OptionParser.new do |opts|
+    opts.banner = <<EOS
+seal #{Seal::VERSION} from #{Seal::DATE}
+Usage: seal-gui
+
+seal-gui is a graphical user interface for Seal.
+
+Options:
+EOS
+
+    opts.version = Seal::VERSION
+
+    #opts.on_tail # separator
+    opts.on_tail( "-h", "--help", "Show this message" ) do
+      puts opts
+      exit
+    end
+    opts.on_tail( "--copyright", "Show copyright (revised BSD License)" ) do
+      puts Seal::LICENSE
+      exit
+    end
+  end
+
+  begin
+    opts.parse!( ARGV )
+  rescue OptionParser::ParseError => error
+    puts error
+    exit( 1 )
+  end
+
+  a = Qt::Application.new( ARGV )
+  seal = Seal.new
+  a.connect( a, SIGNAL('lastWindowClosed()'), a, SLOT('quit()') )
+  seal.widget.show
+  a.exec
+end

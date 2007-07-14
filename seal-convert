@@ -1,0 +1,275 @@
+#!/usr/bin/env ruby
+# -*- ruby -*-
+
+require 'yaml'
+require 'fileutils'
+require 'src/conversion'
+
+class Seal
+
+  include FileUtils
+
+  RESIDENCE = File::dirname(__FILE__)
+
+  def Seal::out
+    $stdout
+  end
+
+  def Seal::err
+    $stderr
+  end
+
+  def Seal::exit( state=0 )
+    Kernel::exit( state )
+  end
+
+  def initialize( options )
+    @options = options
+    @data = YAML::load_file( File::join( RESIDENCE, 'data', 'songs.yaml' ) )
+    @albums = YAML::load_file( File::join( RESIDENCE, 'data',
+                                           'albums.yaml' ) )
+    @albumbuilder = AlbumBuilder.new( @options[ :quiet ] )
+    $stdout.sync = true unless options[ :quiet ]
+  end
+
+  def convert
+    self.setup
+
+    index = File::new( File::join( @options[ :destination ],
+                                   'index.tex' ), 'w' )
+    contents = []
+    @albums.each do |album|
+      if album.nil?
+        contents << [ nil, nil ]
+        next
+      end
+      
+      songs = @data[ album ]
+      next if songs.empty?
+      
+      dir, ext = album.split( "#" )
+      ext = '_' + ext if not ext.nil?
+
+      index_html  = File::join( @options[ :source ], dir, "index.htm" )
+      destination = File::join( @options[ :destination ], dir )
+
+      begin
+        @albumbuilder.convert_album( album, index_html, destination, songs )
+      rescue Errno::ENOENT => e
+        Seal::err << e.to_s << "\n" << "Please check your data/songs.yaml and data/albums.yaml files\n"
+        Seal::exit( 3 )
+      end
+      index << "\\input{" << File::join( dir, "index#{ext}.tex" ) << "}\n"
+      contents << [ @albumbuilder.number, @albumbuilder.title ]
+    end
+
+    index.close
+
+    generate_toc( contents )
+  end
+
+  def generate_toc( contents )
+    toc = File::join( @options[:destination], 'contents.tex' )
+    File::open( toc, "w" ) do |toc|
+      toc << <<EOS
+\\thispagestyle{empty}
+\\vspace*\\fill
+\\pdfbookmark{Contents}{toc}
+\\begin{center}\\begin{tabular}{rlcrl}
+\\multicolumn{5}{r}{{\\Huge Contents}}\\tabularnewline
+&&&&\\tabularnewline
+&&&&\\tabularnewline
+Preface & \\emph{\\pageref{preface}}&&&\\tabularnewline
+Roadmaps for the Soul & \\emph{\\pageref{roadmaps}}&&&\\tabularnewline
+Harp Keys & \\emph{\\pageref{harpkeys}}&&&\\tabularnewline
+EOS
+  
+      half = contents.size.quo(2).ceil
+      0.upto( half-1 ) do |i|
+        number, title = contents[i]
+        toc << <<EOS
+\\textbf{#{number}}$\\quad$#{title} & \\emph{\\pageref{album:#{number}}} & & 
+EOS
+
+        if i + half < contents.size
+          number, title = contents[i+half]
+          if number.nil? || title.nil?
+            # spacing between albums and misc. sections
+            toc << "&"
+          else
+            toc << <<EOS
+\\textbf{#{number}}$\\quad$#{title} & \\emph{\\pageref{album:#{number}}}
+EOS
+          end
+        else
+          toc << "&"
+        end
+        toc << "\\tabularnewline\n"
+      end
+      toc << <<EOS
+&&&&\\tabularnewline
+\\multicolumn{4}{r}{Song Index} & \\emph{\\pageref{songindex}}\\tabularnewline
+\\end{tabular}\\end{center}
+\\vfill
+EOS
+    end
+  end
+
+  def setup
+    dest = @options[ :destination ]
+    
+    if File::exists?( dest )
+      if @options[ :force ] or ask( "Directory `#{dest}' exists. Overwrite?" )
+        rm_rf( Dir::glob( File::join( dest, "*[^~]" ) ) )
+      else
+        Seal::err << "Abort.\n"
+        Seal::exit( 2 )
+      end
+    else
+      mkdir( dest )
+    end
+
+    copy_dir( File::join( RESIDENCE, "template" ), dest )
+
+    @data.each_key do |album|
+      if album.include?( ?# )
+        dir, ext = album.split( '#' )
+        dir = File::join( dest, dir )
+        if not File::exists?( dir )
+          mkdir( dir )
+        end
+      else
+        mkdir( File::join( dest, album ) )
+      end
+    end
+
+    about = File::join( dest, 'about.tex' )
+    File::open( about, "w" ) do |about|
+      about << <<EOS
+\\thispagestyle{empty}
+\\vspace*\\fill
+\\begin{flushleft}
+{\\small Created by \\texttt{seal} version #{Seal::VERSION}.\\\\
+Typeset using \\LaTeX\\ on \\today.}
+\\end{flushleft}
+EOS
+    end
+
+    if @options[ :config ].nil? or @options[ :config ].empty?
+      @options[ :config ] = "\\openany"
+    end
+    config = File::join( dest, 'config.tex' )
+    File::open( config, "w" ) do |config|
+      @options[ :config ].each do |option|
+        config << option << "\n"
+      end
+    end
+  end
+
+  def copy_dir( src, dest )
+    # copies the *non-hidden contents* of src
+    # into dest
+    Dir::glob( File::join( src, "*[^~]" ) ).each do |src_entry|
+      dest_entry = File::join( dest, File::basename( src_entry ) )
+      
+      if File::directory?( src_entry )
+        mkdir dest_entry
+        copy_dir( src_entry, dest_entry )
+      else
+        copy( src_entry, dest_entry )
+      end
+    end
+  end
+
+  def ask( promt, default = 'n' )
+    opts = { 'y'=>' [Y/n] ', 'n'=>' [y/N] ' }
+    print promt, opts[ default.downcase ]
+    char = $stdin.getc
+    if char != ?\n
+      # read the following newline character,
+      # if we havn't already got one
+      $stdin.getc
+    end
+    'y' == char.chr.downcase.sub( "\n", default )
+  end
+
+end
+
+if __FILE__ == $0
+  require 'optparse'
+  require 'src/about'
+  
+  options = { :config => '\\openany' }
+  opts = OptionParser.new do |opts|
+    opts.banner = <<EOS
+seal #{Seal::VERSION} from #{Seal::DATE}
+Usage: seal-convert [options] source [destination]
+
+seal-convert is a command line tool to convert
+the Dylanchords HTML files to LaTeX
+
+Options:
+EOS
+
+    opts.version = Seal::VERSION
+
+    opts.on( "-f", "--[no-]force", "Overwrite existing directories" ) do |f|
+      options[ :force ] = f
+    end
+    opts.on( "-i", "--[no-]interactive", "Ask before overwriting" ) do |i|
+      options[ :force ] = !i
+    end
+    opts.on( "-v", "--[no-]verbose", "Write out what is going on" ) do |v|
+      options[ :quiet ] = !v
+    end
+    opts.on( "-q", "--[no-]quiet", "Don't write what is going on" ) do |q|
+      options[ :quiet ] = q
+    end
+    opts.on( "-o", "--options [list]", String,
+             "Set a configuration option" ) do |list|
+      options[ :config ] = []
+      list.scan( /\w+/ ) do |option|
+        case option
+        when 'openright', 'openleft', 'openany'
+          options[ :config ] << "\\" + option
+        else
+          Seal::err << "Unknown configuration option: `#{option}'\n"
+          Seal::exit( 4 )
+        end
+      end
+    end
+
+    opts.on_tail # separator
+    opts.on_tail( "-h", "--help", "Show this message" ) do
+      puts opts
+      exit
+    end
+    opts.on_tail( "--copyright", "Show copyright (revised BSD License)" ) do
+      puts Seal::LICENSE
+      exit
+    end
+  end
+
+  begin
+    opts.parse!( ARGV )
+  rescue OptionParser::ParseError => error
+    puts error
+    exit( 1 )
+  end
+
+  if ARGV.empty?
+    puts opts
+    exit( 1 )
+  end
+
+  options[ :source ] = ARGV.shift
+  options[ :destination ] = ARGV.shift||File::join( Dir::pwd, 'book' )
+
+  seal = Seal.new( options )
+
+  begin
+    seal.convert
+  rescue Interrupt
+    exit 2
+  end
+end
