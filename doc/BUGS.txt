@@ -7,7 +7,7 @@ Known bugs in Seal's output
   introduction: The last page doesn't have the articlelayout.
 * Missing image in What can I do for you => New image handling?
   (With <img id="lordy" ... />, for instance?
-* The design may need a cleanup. We want it beatiful!
+* The design may need a cleanup. We want it beautiful!
 * No/poor support for things like <pre class="tab bridge">. Bad!
 
 Misc
