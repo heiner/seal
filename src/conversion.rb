@@ -1,5 +1,5 @@
 
-require 'rexml/document'
+require 'converter'
 
 def File::chopext( path )
   path[0...path.rindex('.')]

@@ -11,6 +11,8 @@ module States
     end
     def character( converter, data )
     end
+    def skippedEntity( converter, name )
+    end
   end
 
   PreTextState = State.new
@@ -19,12 +21,12 @@ module States
     def chordline?( line )
       line.rstrip!
       rate = 0
-      rate += line.count(' ').quo(line.length)
-      rate += line.count('~').quo(line.length)
+      rate += line.count(' ').to_f.quo(line.length)
+      rate += line.count('~').to_f.quo(line.length)
       rate += 0.6 if line.length < 4
       rate += 0.2 if line.include?( '#' )
-      rate += line.count('/')/4
-      rate += line.count('.')/10
+      rate += line.count('/')/4.0
+      rate += line.count('.')/10.0
       rate += 0.1  if line.count('[') + line.count(']') >= 3
       rate >= 0.6
     end
@@ -57,6 +59,10 @@ module States
     def character( converter, data )
       converter.buffer << data
     end
+
+    def to_s
+      'PreTextState'
+    end
   end
 
   TabState = State.new
@@ -79,6 +85,10 @@ module States
     def character( converter, data )
       converter.buffer << data
     end
+
+    def to_s
+      'TabState'
+    end
   end
 
   MiscPreState = State.new
@@ -93,6 +103,10 @@ module States
     def character( converter, data )
       converter.out << data
     end
+
+    def to_s
+      'MiscPreStates'
+    end
   end
 
   SongTitleState = State.new
@@ -101,6 +115,7 @@ module States
       if name == "h1"
         converter.out << converter.buffer.gsub('!', "\\protect\\excl{}")
         converter.out << '}{' << simplify( converter.buffer ) << "}"
+        converter.songtitle = converter.buffer
         converter.buffer = ""
         converter.endState
       else
@@ -115,14 +130,28 @@ module States
     def simplify( title )
       title.downcase.gsub( /\\?[#&~]|\\ss/, '' )
     end
+
+    def to_s
+      'SongTitleState'
+    end
   end
 
   RootState = State.new
   class <<RootState
     def startElement( converter, name, attr )
-      if name == "body"
+      if name == 'body'
         converter.newState( BodyState )
       end
+    end
+
+    def endElement( converter, name )
+      if name == 'html'
+        converter.endState
+      end
+    end
+
+    def to_s
+      'RootState'
     end
   end
 
@@ -156,7 +185,7 @@ module States
           converter.out << '\\begin{alltt}'
           converter.newState( MiscPreState )
         else
-          raise Converter::Error, "unexpected pre attribute #{classes[0]}"          
+          #raise Converter::Error, "unexpected pre attribute #{classes[0]}"          
         end
       end
     end
@@ -200,6 +229,7 @@ module States
         converter.out << '\\item '
         converter.newState( TextState )
       when 'div'
+        converter.newState( BodyState )
       when 'blockquote'
         converter.out << '\\begin{quote}'
         converter.newState( TextState )
@@ -212,6 +242,8 @@ module States
       case name
       when 'ul'
         converter.out << '\\end{itemize}'
+      when 'div'
+        converter.endState
       when 'body'
         converter.endState
       end
@@ -219,6 +251,10 @@ module States
 
     def character( converter, data )
       converter.out << data
+    end
+
+    def to_s
+      'BodyState'
     end
   end
 
@@ -240,10 +276,12 @@ module States
       # when 'u', 'small', 'big', 'abbr'
       when 'pre'
         handle_pre( converter, attr )
+      when 'div'
+        converter.newState( TextState )
       when 'img'
         image = attr[ 'src' ]
         url = File.join( 'graphics', File.basename( image ) )
-        url = File.chopext( url )
+        url = url[0...url.rindex('.')]
         converter.out << "\\input{#{url}}"
       else
         raise Converter::Error, "unexpected tag <#{name}>"
@@ -262,6 +300,8 @@ module States
         converter.endState
       when 'i', 'em', 'a', 'b', 'strong', 'tt'
         converter.out << '}'
+      when 'div'
+        converter.endState
       when 'blockquote'
         converter.out << '\\end{quote}'
         converter.endState
@@ -278,28 +318,36 @@ module States
         converter.out << '\\O'
       end
     end
-  end
 
+    def to_s
+      'TextState'
+    end
+  end
 end
 
 
 class Converter < XML::Parser
 
-  class Error < RuntimeError
-  end
+  #class Error < RuntimeError
+  #end
 
-  attr_accessor :out, :buffer, :extra
+  attr_accessor :out, :buffer, :extra, :songtitle
 
-  def initialize
+  def initialize( *args )
+    super( *args )
     reset
   end
   
   def reset( *args )
     super( *args )
-    @out = nil
+    unless @out.nil?
+      @out.close
+      @out = nil
+    end
     @states = [States::RootState]
     @buffer = ""
     @extra = ""
+    @songtitle = nil
   end
 
   def startElement( name, attr )
@@ -329,27 +377,71 @@ class Converter < XML::Parser
     @states.pop
   end
 
-  def convert( input )
-    out << "%%% Converted by seal on #{Time.now}\n"
-    parse( input )
+  def convert( filename )
+    @out << "%%% Converted by seal on #{Time.now}\n"
+    begin
+      parse( File.read( filename ) )
+    rescue XML::Parser::Error
+      print "#{$0}: #{$!} (in line #{self.line} of file #{filename})\n"
+      exit 1
+    end
   end
 
-  #def externalEntityRef( context, base, systemId, publicId )
-  #  extp = XML::Parser.new( self, context )
-  #  extp.parse( open( 'xhtml-lat1.ent' ).read )
-  #  extp.done
-  #end
+  def finished?
+    @states.empty?
+  end
+
 end
 
 if __FILE__ == $0
-  converter = Converter.new
-  converter.out = $stdout
-  #puts converter.setParamEntityParsing( 2 )
 
-  begin
-    converter.convert( $<.read )
-  rescue XML::Parser::Error, Converter::Error
-    print "#{$0}: #{$!} (in line #{converter.line})\n"
-    exit 1
+  def File::chopext( path )
+    path[0...path.rindex('.')]
   end
+  
+  converter = Converter.new
+
+  require 'yaml'
+  residence = File.dirname(__FILE__)
+  songshash = YAML.load_file( File.join( residence, '../data', 'songs.yaml' ) )
+
+  counter = 0
+  dircount = 0
+
+  $stdout.sync = true
+  
+  songshash.each_pair do |dir, songs|
+    dircount += 1
+    print "%2i" % dircount
+    songs.each do |song|
+      converter.reset
+      if not dir && song
+        print " "
+        next
+      end
+      next if song.include?( "@" ) or song.include?( "/" )
+      if dir.include?( "#" )
+        dir = dir.split( '#' )[0]
+      end
+      song.sub!( '*', '' )
+      counter += 1
+      begin
+        input = '/home/heiner/tmp/dylanchords/' + dir + "/" + song
+        $stdout << '.'
+        converter.out = open( "/tmp/" + song + '.tex', 'w' )
+        begin
+          converter.convert( input )
+        rescue XML::Parser::Error
+          print "#{$0}: #{$!} (in line #{converter.line}, file #{song})\n"
+          exit 1
+        end
+      rescue Errno::ENOENT => e
+        puts e
+        print 'x'
+      end
+    end
+    print "\n"
+  end
+
+  puts counter
 end
