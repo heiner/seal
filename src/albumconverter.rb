@@ -110,7 +110,7 @@ EOS
       else
       end
 
-      basename = File.basename( song, '.htm' )
+      basename = song[0...-4] # without extension, but with path
       if input
         inputs << File.join( File.basename( dest ), basename )
       end
@@ -133,7 +133,7 @@ EOS
             << ttl << '} \\tabularnewline' << "\n"
     end
 
-    index << "\n"
+    index << "\\end{ctabular}\n\\end{flushright}\n\n"
 
     # Convert the intro (if any)
     @converter.out = index

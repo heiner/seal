@@ -39,9 +39,8 @@ class Seal
 
   def initialize( options )
     @options = options
-    @data = YAML::load_file( File::join( RESIDENCE, 'data', 'songs.yaml' ) )
-    @albums = YAML::load_file( File::join( RESIDENCE, 'data',
-                                           'albums.yaml' ) )
+    @data   = YAML.load_file( File::join( RESIDENCE, 'data', 'songs.yaml' ) )
+    @albums = YAML.load_file( File::join( RESIDENCE, 'data', 'albums.yaml' ) )
     @stats = Stats.new
     @albumconverter = AlbumConverter.new( @options, @stats )
   end
@@ -49,8 +48,7 @@ class Seal
   def convert
     self.setup
 
-    index = File::new( File::join( @options[ :destination ],
-                                   'index.tex' ), 'w' )
+    index = File.new( File.join( @options[ :destination ], 'index.tex' ), 'w' )
     contents = []
     @albums.each do |album|
       if album.nil?
@@ -81,7 +79,7 @@ class Seal
 
     generate_toc( contents )
 
-    Seal::out << "\n\n" << "Congratulations -- everythings done!" << "\n"
+    Seal::out << "\n\n" << "Congratulations -- conversion is done! Run seal-tex now." << "\n"
     Seal::out << "(Now you can seal up the book and not write anymore.)" << "\n\n"
     @stats.print
   end
@@ -176,8 +174,7 @@ EOS
     if @options[ :config ].nil? or @options[ :config ].empty?
       @options[ :config ] = "\\openany"
     end
-    config = File::join( dest, 'config.tex' )
-    File::open( config, "w" ) do |config|
+    File.open( File.join( dest, 'config.tex' ), "w" ) do |config|
       @options[ :config ].each do |option|
         config << option << "\n"
       end
@@ -233,12 +230,6 @@ EOS
 
     opts.on( "-f", "--[no-]force", "Overwrite existing directories" ) do |f|
       options[ :force ] = f
-    end
-    opts.on( "-i", "--[no-]interactive", "Ask before overwriting" ) do |i|
-      options[ :force ] = !i
-    end
-    opts.on( "-v", "--[no-]verbose", "Write out what is going on" ) do |v|
-      options[ :quiet ] = !v
     end
     opts.on( "-q", "--[no-]quiet", "Don't write what is going on" ) do |q|
       options[ :quiet ] = q

@@ -15,8 +15,87 @@ module States
     end
   end
 
+  module EntityHandler
+    def entity( name )
+      case name
+      when 'Oslash' then '{\\O}'
+      when 'ndash' then '--'
+      when 'nbsp' then '~'
+      when 'ldquo' then '``'
+      when 'rdquo' then ''''
+      when 'mdash' then '---'
+      when 'lsquo' then '`'
+      when 'rsquo' then '\''
+      when 'acirc' then '\\^a'
+      when 'agrave' then '\\`a'
+      when 'aacute' then '\\\'a'
+      when 'auml' then '\\"a'
+      when 'ecirc' then '\\^e'
+      when 'egrave' then '\\`e'
+      when 'eacute' then '\\\'e'
+      when 'euml' then '\\"e'
+      when 'icirc' then '\\^i'
+      when 'igrave' then '\\`i'
+      when 'iacute' then '\\\'i'
+      when 'iuml' then '\\"i'
+      when 'ocirc' then '\\^o'
+      when 'ograve' then '\\`o'
+      when 'oacute' then '\\\'o'
+      when 'ouml' then '\\"o'
+      when 'ucirc' then '\\^u'
+      when 'ugrave' then '\\`u'
+      when 'uacute' then '\\\'u'
+      when 'uuml' then '\\"u'
+      when 'ycirc' then '\\^y'
+      when 'ygrave' then '\\`y'
+      when 'yacute' then '\\\'y'
+      when 'yuml' then '\\"y'
+      when 'Acirc' then '\\^A'
+      when 'Agrave' then '\\`A'
+      when 'Aacute' then '\\\'A'
+      when 'Auml' then '\\"A'
+      when 'Ecirc' then '\\^E'
+      when 'Egrave' then '\\`E'
+      when 'Eacute' then '\\\'E'
+      when 'Euml' then '\\"E'
+      when 'Icirc' then '\\^I'
+      when 'Igrave' then '\\`I'
+      when 'Iacute' then '\\\'I'
+      when 'Iuml' then '\\"I'
+      when 'Ocirc' then '\\^O'
+      when 'Ograve' then '\\`O'
+      when 'Oacute' then '\\\'O'
+      when 'Ouml' then '\\"O'
+      when 'Ucirc' then '\\^U'
+      when 'Ugrave' then '\\`U'
+      when 'Uacute' then '\\\'U'
+      when 'Uuml' then '\\"U'
+      when 'Ycirc' then '\\^Y'
+      when 'Ygrave' then '\\`Y'
+      when 'Yacute' then '\\\'Y'
+      when 'Yuml' then '\\"Y'
+      when 'atilde' then '\\~a'
+      when 'ntilde' then '\\~n'
+      when 'otilde' then '\\~o'
+      when 'Atilde' then '\\~A'
+      when 'Ntilde' then '\\~N'
+      when 'Otilde' then '\\~O'
+      when 'oslash' then '{\\o}'
+      when 'aring' then '{\\aa}'
+      when 'Aring' then '{\\AA}'
+      when 'aelig' then '{\\ae}'
+      when 'AElig' then '{\\AE}'
+      when 'szlig' then '{\\ss}'
+      when 'ccedil' then '{\\c c}'
+      when 'Ccedil' then '{\\c C}'
+      end
+    end
+  end
+  
   PreTextState = State.new
   class <<PreTextState
+
+    include EntityHandler
 
     def chordline?( line )
       line.rstrip!
@@ -35,9 +114,15 @@ module States
       if name == "pre"
         converter.buffer.slice!( 0 ) if converter.buffer[0] == ?\n
         converter.buffer.chomp!
+
+        converter.buffer.gsub!( '[', '{\\relax}[' )
+        converter.buffer.gsub!( '$', '\\$' )
+        converter.buffer.gsub!( '%', '\\%' )
+        converter.buffer.gsub!( '_', '\\_' )
+        converter.buffer.gsub!( '#', '\\#' )
+        converter.buffer.gsub!( '^', '\\^' )
         converter.buffer.gsub!( ' ', '~' )
         converter.buffer.gsub!('--','{-}{-}')
-        converter.buffer.gsub!( '[', '{\\relax}[' )
 
         converter.buffer.each_line do |line|
           line.chomp!
@@ -57,9 +142,16 @@ module States
     end
 
     def character( converter, data )
+      data.gsub!( '\\', '{\\bs}' )
+      data.gsub!( '~', '\\~{}' )
       converter.buffer << data
     end
 
+    def skippedEntity( converter, name )
+      #puts name
+      converter.buffer << entity( name )
+    end
+    
     def to_s
       'PreTextState'
     end
@@ -71,10 +163,20 @@ module States
     def endElement( converter, name )
       if name == "pre"
         converter.buffer.rstrip!
-        converter.buffer.slice!( 0 ) if converter.buffer[0] == ?\n
+        converter.buffer.slice!( 0 ) while converter.buffer[0] == ?\n
+        converter.buffer.gsub!( '~', '\\~{}' )
+        converter.buffer.gsub!( '\\', '{\\bs}' )
+        converter.buffer.gsub!( '$', '\\$' )
+        converter.buffer.gsub!( '%', '\\%' )
+        converter.buffer.gsub!( '_', '\\_' )
+        converter.buffer.gsub!( '[', "{\\relax}[" )
+        converter.buffer.gsub!( '#', '\\#' )
+        converter.buffer.gsub!( '^', '\\^' )
+        converter.buffer.gsub!( "\t", '~'*8 )
         converter.buffer.gsub!( '--', '{-}{-}' )
         converter.buffer.gsub!( ' ', '~' )
-        converter.buffer.gsub!( "\t", '~'*8 )
+        converter.buffer.gsub!( "\n\n\n", "\\\\\\~\n" )
+        converter.buffer.gsub!( "\n\n", "\\\\\\~\n" )
         converter.buffer.gsub!( "\n", "\\\\\\*\n" )
         converter.out << converter.buffer << "\n" << '\\end{pre}'
         converter.buffer = ""
@@ -85,6 +187,11 @@ module States
     def character( converter, data )
       converter.buffer << data
     end
+
+    # There are no entities in tabs ATM
+    #def skippedEntity( converter, name )
+    #  puts name
+    #end
 
     def to_s
       'TabState'
@@ -111,11 +218,20 @@ module States
 
   SongTitleState = State.new
   class <<SongTitleState
+
+    include EntityHandler
+
     def endElement( converter, name )
       if name == "h1"
-        converter.out << converter.buffer.gsub('!', "\\protect\\excl{}")
-        converter.out << '}{' << simplify( converter.buffer ) << "}"
+        simple = converter.buffer.downcase.gsub( /\\?[#&~]|\\ss/, '' )
+
+        converter.buffer.gsub!( '#', '\\#' )
+        converter.buffer.gsub!( '&', '\\\\&' )
         converter.songtitle = converter.buffer
+
+        converter.out << converter.buffer.gsub( '!', '\\protect\\excl{}' ) \
+                      << '}{' << simple << "}"
+
         converter.buffer = ""
         converter.endState
       else
@@ -127,8 +243,8 @@ module States
       converter.buffer << data
     end
 
-    def simplify( title )
-      title.downcase.gsub( /\\?[#&~]|\\ss/, '' )
+    def skippedEntity( converter, name )
+      converter.buffer << entity( name )
     end
 
     def to_s
@@ -173,8 +289,9 @@ module States
           converter.buffer = ""
           converter.newState( TabState )
         when 'verse', 'refrain', 'bridge', 'bridge2', 'bridge3', 'spoken'
-          converter.out << '\\begin{' << classes[0] << '}\\begin{pre}%' << "\n"
+          converter.out << '\\begin{' << classes[0] << '}\\begin{pre}'
           converter.out << '\\slshape' if classes[0] == 'spoken'
+          converter.out << "%\n"
           converter.extra = '\\end{' + classes[0] + '}' + converter.extra
           converter.newState( PreTextState )
         when 'quote'
@@ -190,7 +307,7 @@ module States
       end
     end
   end
-  
+
   BodyState = State.new
   class <<BodyState
 
@@ -262,6 +379,7 @@ module States
   class <<TextState
 
     include PreHandler
+    include EntityHandler
 
     def startElement( converter, name, attr )
       case name
@@ -308,15 +426,40 @@ module States
       end
     end
 
+    REPLACEMENTS = [
+                    [ '\\', '{\\bs}' ],
+                    [ "\303\230", '{\\O}' ],
+
+                    [ "\302\222", "'" ],       # &#146;
+                    [ "\342\200\223", '--' ],  # &#8211;
+                    [ "\342\200\224", '---' ], # &#8212;
+                    [ "\342\200\234", '``' ],  # &#8220
+                    [ "\342\200\235", "''" ],  # &#8221;
+
+                    [ '~', '\\~{}' ], [ '$', '\\$'], [ '%', '\\%'],
+                    [ '_', '\\_'],    [ '#', '\\#'], [ '^', '\\^'],
+                    [ "\342\231\257", "$\\sharp$" ], # 0x266F == 9839 == `#'
+                    [ "\342\231\255", "$\\flat$" ],  # 0x266D == 9837 == `b'
+                    [ '&', '\\\\&' ],
+                    [ ' - ', ' -- ' ],
+                    [ '...', '\\ldots{}' ],
+                    [ '. . .', '\\ldots{}' ],
+                  # [ '.~.~.', '\\ldots{}' ],
+                    [ /(^|\W)'((?:[^']|\w'\w)+)'(\W|\Z)/,
+                      "\\1`{}\\2'{}\\3" ], # "
+                    [ /"([^"]+)"/, "``{}\\1''{}" ], # "
+                    [ /(\W[ACDFG])\\#(?=\W|m)/i, "\\1$\\sharp$" ],
+                    [ /(\W[ABDFG])b(?=\W|m)/, "\\1$\\flat$" ]
+                   ]
     def character( converter, data )
+      REPLACEMENTS.each do |pattern, replacement|
+        data.gsub!( pattern, replacement )
+      end
       converter.out << data
     end
 
     def skippedEntity( converter, name )
-      case name
-      when 'Oslash'
-        converter.out << '\\O'
-      end
+      converter.out << entity( name )
     end
 
     def to_s
