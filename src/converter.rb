@@ -22,7 +22,7 @@ module States
       when 'ndash' then '--'
       when 'nbsp' then '~'
       when 'ldquo' then '``'
-      when 'rdquo' then ''''
+      when 'rdquo' then '\'\''
       when 'mdash' then '---'
       when 'lsquo' then '`'
       when 'rsquo' then '\''
@@ -208,6 +208,15 @@ module States
     end
 
     def character( converter, data )
+      data.gsub!( '~', '\\~{}' )
+      data.gsub!( '\\', '{\\bs}' )
+      data.gsub!( '$', '\\$' )
+      data.gsub!( '%', '\\%' )
+      data.gsub!( '_', '\\_' )
+      data.gsub!( '[', "{\\relax}[" )
+      data.gsub!( '#', '\\#' )
+      data.gsub!( '^', '\\^' )
+      data.gsub!( "\t", '~'*8 )
       converter.out << data
     end
 
@@ -227,7 +236,7 @@ module States
 
         converter.buffer.gsub!( '#', '\\#' )
         converter.buffer.gsub!( '&', '\\\\&' )
-        converter.songtitle = converter.buffer
+        converter.title = converter.buffer
 
         converter.out << converter.buffer.gsub( '!', '\\protect\\excl{}' ) \
                       << '}{' << simple << "}"
@@ -367,7 +376,7 @@ module States
     end
 
     def character( converter, data )
-      converter.out << data
+      #converter.out << data.gsub( "\n", "%\n" )
     end
 
     def to_s
@@ -409,7 +418,7 @@ module States
     def endElement( converter, name )
       case name
       when 'p'
-        #converter.out << "\n"
+        converter.out << "\n\n"
         converter.endState
       when 'li'
         converter.endState
@@ -474,7 +483,7 @@ class Converter < XML::Parser
   #class Error < RuntimeError
   #end
 
-  attr_accessor :out, :buffer, :extra, :songtitle
+  attr_accessor :out, :buffer, :extra, :title
 
   def initialize( *args )
     super( *args )
@@ -490,7 +499,7 @@ class Converter < XML::Parser
     @states = [States::RootState]
     @buffer = ""
     @extra = ""
-    @songtitle = nil
+    @title = nil
   end
 
   def startElement( name, attr )

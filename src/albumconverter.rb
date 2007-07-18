@@ -1,11 +1,15 @@
 
 require 'src/converter'
+require 'src/albumtitles'
 
 module States
   AlbumIndexState = State.new
   class <<AlbumIndexState
 
     def startElement( converter, name, attributes )
+      if name == 'title'
+        converter.newState( AlbumTitleState )
+      end
       if name == 'div' and attributes[ 'id' ] == 'intro'
         converter.out << "\\newpage\\begin{articlelayout}\n\\vspace*\\fill\n"
         converter.newState( AlbumIntroState )
@@ -16,6 +20,38 @@ module States
       'AlbumIndexState'
     end
   end
+
+  AlbumTitleState = State.new
+  class <<AlbumTitleState
+
+    include EntityHandler
+
+    def endElement( converter, name )
+      if name == "title"
+        converter.buffer.gsub!( '#', '\\#' )
+        converter.buffer.gsub!( '&', '\\\\&' )
+        converter.title = converter.buffer
+        converter.buffer = ""
+        converter.endState
+      else
+        raise Converter::Error
+      end
+    end
+
+    def character( converter, data )
+      converter.buffer << data
+    end
+
+    def skippedEntity( converter, name )
+      converter.buffer << entity( name )
+    end
+
+    def to_s
+      'AlbumTitleState'
+    end
+  end
+
+
 
   AlbumIntroState = BodyState.clone
   class <<AlbumIntroState
@@ -57,28 +93,7 @@ class AlbumConverter
     
     index = File.new( File.join( dest, "index#{ext}.tex" ), 'w' )
 
-    title_latex, release = "", ""
-    index << <<EOS
-\\def\\thesong{}
-\\cleardoublepage
-\\def\\thealbum{#{title}}
-\\thispagestyle{album}
-\\phantomsection
-\\pdfbookmark{#{number} #{title}}{album#{number}}
-\\label{album:#{number}}
-
-\\begin{flushright}
-\\scalebox{6}{\\Huge #{number}}
-
-\\vspace{5ex}
-#{title_latex}
-
-{\\footnotesize #{release}}
-
-\\vspace{10ex}
-
-\\begin{ctabular}[r]{r>{\\raggedright}p{20em}}
-EOS
+    index << start_index( album_name )
 
     inputs = []
     outtake = false
@@ -118,7 +133,7 @@ EOS
       unless @converted_titles.has_key?( basename )
         @converter.out = File.new( File.join( dest, basename + '.tex' ), 'w' )
         @converter.convert( File.join( src, song ) )
-        @converted_titles[ basename ] = @converter.songtitle
+        @converted_titles[ basename ] = @converter.title
         @converter.reset
         @stats.songs += 1
         progress( '.' )
