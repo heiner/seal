@@ -208,9 +208,9 @@ module Converting
     ostring = ""
 
     # No/poor support for things like <pre class="tab bridge"> # FIXME!
-    if pre_tag.attributes[ 'class' ] =~ /.*\s.*/
-      $stderr << pre_tag.attributes[ 'class' ] << "\n"
-    end
+    #if pre_tag.attributes[ 'class' ] =~ /.*\s.*/
+    #  $stderr << pre_tag.attributes[ 'class' ] << "\n"
+    #end
     css_class = if pre_tag.attributes.has_key?( 'class' )
 		  pre_tag.attributes[ 'class' ].split.first
 		else

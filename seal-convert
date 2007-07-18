@@ -3,13 +3,27 @@
 
 require 'yaml'
 require 'fileutils'
-require 'src/conversion'
+require 'src/albumconverter'
 
 class Seal
 
   include FileUtils
 
   RESIDENCE = File::dirname(__FILE__)
+
+  class Stats
+    attr_accessor :songs, :albums
+    def initialize
+      @songs = @albums = 0
+      @start = Time.now
+    end
+
+    def print
+      puts "Songs:  #@songs"
+      puts "Albums: #@albums"
+      puts "Elapsed: " + sprintf( "%0.3fs", Time.now - @start )
+    end
+  end
 
   def Seal::out
     $stdout
@@ -25,18 +39,16 @@ class Seal
 
   def initialize( options )
     @options = options
-    @data = YAML::load_file( File::join( RESIDENCE, 'data', 'songs.yaml' ) )
-    @albums = YAML::load_file( File::join( RESIDENCE, 'data',
-                                           'albums.yaml' ) )
-    @albumbuilder = AlbumBuilder.new( @options[ :quiet ] )
-    $stdout.sync = true unless options[ :quiet ]
+    @data   = YAML.load_file( File::join( RESIDENCE, 'data', 'songs.yaml' ) )
+    @albums = YAML.load_file( File::join( RESIDENCE, 'data', 'albums.yaml' ) )
+    @stats = Stats.new
+    @albumconverter = AlbumConverter.new( @options, @stats )
   end
 
   def convert
     self.setup
 
-    index = File::new( File::join( @options[ :destination ],
-                                   'index.tex' ), 'w' )
+    index = File.new( File.join( @options[ :destination ], 'index.tex' ), 'w' )
     contents = []
     @albums.each do |album|
       if album.nil?
@@ -50,22 +62,26 @@ class Seal
       dir, ext = album.split( "#" )
       ext = '_' + ext if not ext.nil?
 
-      index_html  = File::join( @options[ :source ], dir, "index.htm" )
+      source = File::join( @options[ :source ], dir )
       destination = File::join( @options[ :destination ], dir )
 
       begin
-        @albumbuilder.convert_album( album, index_html, destination, songs )
+        @albumconverter.convert( album, source, destination, songs )
       rescue Errno::ENOENT => e
         Seal::err << e.to_s << "\n" << "Please check your data/songs.yaml and data/albums.yaml files\n"
         Seal::exit( 3 )
       end
       index << "\\input{" << File::join( dir, "index#{ext}.tex" ) << "}\n"
-      contents << [ @albumbuilder.number, @albumbuilder.title ]
+      contents << [ @albumconverter.number, @albumconverter.title ]
     end
 
     index.close
 
     generate_toc( contents )
+
+    Seal::out << "\n\n" << "Congratulations -- conversion is done! Run seal-tex now." << "\n"
+    Seal::out << "(Now you can seal up the book and not write anymore.)" << "\n\n"
+    @stats.print
   end
 
   def generate_toc( contents )
@@ -158,8 +174,7 @@ EOS
     if @options[ :config ].nil? or @options[ :config ].empty?
       @options[ :config ] = "\\openany"
     end
-    config = File::join( dest, 'config.tex' )
-    File::open( config, "w" ) do |config|
+    File.open( File.join( dest, 'config.tex' ), "w" ) do |config|
       @options[ :config ].each do |option|
         config << option << "\n"
       end
@@ -215,12 +230,6 @@ EOS
 
     opts.on( "-f", "--[no-]force", "Overwrite existing directories" ) do |f|
       options[ :force ] = f
-    end
-    opts.on( "-i", "--[no-]interactive", "Ask before overwriting" ) do |i|
-      options[ :force ] = !i
-    end
-    opts.on( "-v", "--[no-]verbose", "Write out what is going on" ) do |v|
-      options[ :quiet ] = !v
     end
     opts.on( "-q", "--[no-]quiet", "Don't write what is going on" ) do |q|
       options[ :quiet ] = q

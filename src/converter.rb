@@ -11,20 +11,101 @@ module States
     end
     def character( converter, data )
     end
+    def skippedEntity( converter, name )
+    end
   end
 
+  module EntityHandler
+    def entity( name )
+      case name
+      when 'Oslash' then '{\\O}'
+      when 'ndash' then '--'
+      when 'nbsp' then '~'
+      when 'ldquo' then '``'
+      when 'rdquo' then '\'\''
+      when 'mdash' then '---'
+      when 'lsquo' then '`'
+      when 'rsquo' then '\''
+      when 'acirc' then '\\^a'
+      when 'agrave' then '\\`a'
+      when 'aacute' then '\\\'a'
+      when 'auml' then '\\"a'
+      when 'ecirc' then '\\^e'
+      when 'egrave' then '\\`e'
+      when 'eacute' then '\\\'e'
+      when 'euml' then '\\"e'
+      when 'icirc' then '\\^i'
+      when 'igrave' then '\\`i'
+      when 'iacute' then '\\\'i'
+      when 'iuml' then '\\"i'
+      when 'ocirc' then '\\^o'
+      when 'ograve' then '\\`o'
+      when 'oacute' then '\\\'o'
+      when 'ouml' then '\\"o'
+      when 'ucirc' then '\\^u'
+      when 'ugrave' then '\\`u'
+      when 'uacute' then '\\\'u'
+      when 'uuml' then '\\"u'
+      when 'ycirc' then '\\^y'
+      when 'ygrave' then '\\`y'
+      when 'yacute' then '\\\'y'
+      when 'yuml' then '\\"y'
+      when 'Acirc' then '\\^A'
+      when 'Agrave' then '\\`A'
+      when 'Aacute' then '\\\'A'
+      when 'Auml' then '\\"A'
+      when 'Ecirc' then '\\^E'
+      when 'Egrave' then '\\`E'
+      when 'Eacute' then '\\\'E'
+      when 'Euml' then '\\"E'
+      when 'Icirc' then '\\^I'
+      when 'Igrave' then '\\`I'
+      when 'Iacute' then '\\\'I'
+      when 'Iuml' then '\\"I'
+      when 'Ocirc' then '\\^O'
+      when 'Ograve' then '\\`O'
+      when 'Oacute' then '\\\'O'
+      when 'Ouml' then '\\"O'
+      when 'Ucirc' then '\\^U'
+      when 'Ugrave' then '\\`U'
+      when 'Uacute' then '\\\'U'
+      when 'Uuml' then '\\"U'
+      when 'Ycirc' then '\\^Y'
+      when 'Ygrave' then '\\`Y'
+      when 'Yacute' then '\\\'Y'
+      when 'Yuml' then '\\"Y'
+      when 'atilde' then '\\~a'
+      when 'ntilde' then '\\~n'
+      when 'otilde' then '\\~o'
+      when 'Atilde' then '\\~A'
+      when 'Ntilde' then '\\~N'
+      when 'Otilde' then '\\~O'
+      when 'oslash' then '{\\o}'
+      when 'aring' then '{\\aa}'
+      when 'Aring' then '{\\AA}'
+      when 'aelig' then '{\\ae}'
+      when 'AElig' then '{\\AE}'
+      when 'szlig' then '{\\ss}'
+      when 'ccedil' then '{\\c c}'
+      when 'Ccedil' then '{\\c C}'
+      end
+    end
+  end
+  
   PreTextState = State.new
   class <<PreTextState
+
+    include EntityHandler
 
     def chordline?( line )
       line.rstrip!
       rate = 0
-      rate += line.count(' ').quo(line.length)
-      rate += line.count('~').quo(line.length)
+      rate += line.count(' ').to_f.quo(line.length)
+      rate += line.count('~').to_f.quo(line.length)
       rate += 0.6 if line.length < 4
       rate += 0.2 if line.include?( '#' )
-      rate += line.count('/')/4
-      rate += line.count('.')/10
+      rate += line.count('/')/4.0
+      rate += line.count('.')/10.0
       rate += 0.1  if line.count('[') + line.count(']') >= 3
       rate >= 0.6
     end
@@ -33,9 +114,15 @@ module States
       if name == "pre"
         converter.buffer.slice!( 0 ) if converter.buffer[0] == ?\n
         converter.buffer.chomp!
+
+        converter.buffer.gsub!( '[', '{\\relax}[' )
+        converter.buffer.gsub!( '$', '\\$' )
+        converter.buffer.gsub!( '%', '\\%' )
+        converter.buffer.gsub!( '_', '\\_' )
+        converter.buffer.gsub!( '#', '\\#' )
+        converter.buffer.gsub!( '^', '\\^' )
         converter.buffer.gsub!( ' ', '~' )
         converter.buffer.gsub!('--','{-}{-}')
-        converter.buffer.gsub!( '[', '{\\relax}[' )
 
         converter.buffer.each_line do |line|
           line.chomp!
@@ -55,7 +142,18 @@ module States
     end
 
     def character( converter, data )
+      data.gsub!( '\\', '{\\bs}' )
+      data.gsub!( '~', '\\~{}' )
       converter.buffer << data
+    end
+
+    def skippedEntity( converter, name )
+      #puts name
+      converter.buffer << entity( name )
+    end
+    
+    def to_s
+      'PreTextState'
     end
   end
 
@@ -65,10 +163,20 @@ module States
     def endElement( converter, name )
       if name == "pre"
         converter.buffer.rstrip!
-        converter.buffer.slice!( 0 ) if converter.buffer[0] == ?\n
+        converter.buffer.slice!( 0 ) while converter.buffer[0] == ?\n
+        converter.buffer.gsub!( '~', '\\~{}' )
+        converter.buffer.gsub!( '\\', '{\\bs}' )
+        converter.buffer.gsub!( '$', '\\$' )
+        converter.buffer.gsub!( '%', '\\%' )
+        converter.buffer.gsub!( '_', '\\_' )
+        converter.buffer.gsub!( '[', "{\\relax}[" )
+        converter.buffer.gsub!( '#', '\\#' )
+        converter.buffer.gsub!( '^', '\\^' )
+        converter.buffer.gsub!( "\t", '~'*8 )
         converter.buffer.gsub!( '--', '{-}{-}' )
         converter.buffer.gsub!( ' ', '~' )
-        converter.buffer.gsub!( "\t", '~'*8 )
+        converter.buffer.gsub!( "\n\n\n", "\\\\\\~\n" )
+        converter.buffer.gsub!( "\n\n", "\\\\\\~\n" )
         converter.buffer.gsub!( "\n", "\\\\\\*\n" )
         converter.out << converter.buffer << "\n" << '\\end{pre}'
         converter.buffer = ""
@@ -78,6 +186,15 @@ module States
     
     def character( converter, data )
       converter.buffer << data
+    end
+
+    # There are no entities in tabs ATM
+    #def skippedEntity( converter, name )
+    #  puts name
+    #end
+
+    def to_s
+      'TabState'
     end
   end
 
@@ -91,16 +208,39 @@ module States
     end
 
     def character( converter, data )
+      data.gsub!( '~', '\\~{}' )
+      data.gsub!( '\\', '{\\bs}' )
+      data.gsub!( '$', '\\$' )
+      data.gsub!( '%', '\\%' )
+      data.gsub!( '_', '\\_' )
+      data.gsub!( '[', "{\\relax}[" )
+      data.gsub!( '#', '\\#' )
+      data.gsub!( '^', '\\^' )
+      data.gsub!( "\t", '~'*8 )
       converter.out << data
+    end
+
+    def to_s
+      'MiscPreStates'
     end
   end
 
   SongTitleState = State.new
   class <<SongTitleState
+
+    include EntityHandler
+
     def endElement( converter, name )
       if name == "h1"
-        converter.out << converter.buffer.gsub('!', "\\protect\\excl{}")
-        converter.out << '}{' << simplify( converter.buffer ) << "}"
+        simple = converter.buffer.downcase.gsub( /\\?[#&~]|\\ss/, '' )
+
+        converter.buffer.gsub!( '#', '\\#' )
+        converter.buffer.gsub!( '&', '\\\\&' )
+        converter.title = converter.buffer
+
+        converter.out << converter.buffer.gsub( '!', '\\protect\\excl{}' ) \
+                      << '}{' << simple << "}"
+
         converter.buffer = ""
         converter.endState
       else
@@ -112,17 +252,31 @@ module States
       converter.buffer << data
     end
 
-    def simplify( title )
-      title.downcase.gsub( /\\?[#&~]|\\ss/, '' )
+    def skippedEntity( converter, name )
+      converter.buffer << entity( name )
+    end
+
+    def to_s
+      'SongTitleState'
     end
   end
 
   RootState = State.new
   class <<RootState
     def startElement( converter, name, attr )
-      if name == "body"
+      if name == 'body'
         converter.newState( BodyState )
       end
+    end
+
+    def endElement( converter, name )
+      if name == 'html'
+        converter.endState
+      end
+    end
+
+    def to_s
+      'RootState'
     end
   end
 
@@ -144,8 +298,9 @@ module States
           converter.buffer = ""
           converter.newState( TabState )
         when 'verse', 'refrain', 'bridge', 'bridge2', 'bridge3', 'spoken'
-          converter.out << '\\begin{' << classes[0] << '}\\begin{pre}%' << "\n"
+          converter.out << '\\begin{' << classes[0] << '}\\begin{pre}'
           converter.out << '\\slshape' if classes[0] == 'spoken'
+          converter.out << "%\n"
           converter.extra = '\\end{' + classes[0] + '}' + converter.extra
           converter.newState( PreTextState )
         when 'quote'
@@ -156,12 +311,12 @@ module States
           converter.out << '\\begin{alltt}'
           converter.newState( MiscPreState )
         else
-          raise Converter::Error, "unexpected pre attribute #{classes[0]}"          
+          #raise Converter::Error, "unexpected pre attribute #{classes[0]}"          
         end
       end
     end
   end
-  
+
   BodyState = State.new
   class <<BodyState
 
@@ -200,6 +355,7 @@ module States
         converter.out << '\\item '
         converter.newState( TextState )
       when 'div'
+        converter.newState( BodyState )
       when 'blockquote'
         converter.out << '\\begin{quote}'
         converter.newState( TextState )
@@ -212,13 +368,19 @@ module States
       case name
       when 'ul'
         converter.out << '\\end{itemize}'
+      when 'div'
+        converter.endState
       when 'body'
         converter.endState
       end
     end
 
     def character( converter, data )
-      converter.out << data
+      #converter.out << data.gsub( "\n", "%\n" )
+    end
+
+    def to_s
+      'BodyState'
     end
   end
 
@@ -226,6 +388,7 @@ module States
   class <<TextState
 
     include PreHandler
+    include EntityHandler
 
     def startElement( converter, name, attr )
       case name
@@ -240,10 +403,12 @@ module States
       # when 'u', 'small', 'big', 'abbr'
       when 'pre'
         handle_pre( converter, attr )
+      when 'div'
+        converter.newState( TextState )
       when 'img'
         image = attr[ 'src' ]
         url = File.join( 'graphics', File.basename( image ) )
-        url = File.chopext( url )
+        url = url[0...url.rindex('.')]
         converter.out << "\\input{#{url}}"
       else
         raise Converter::Error, "unexpected tag <#{name}>"
@@ -253,7 +418,7 @@ module States
     def endElement( converter, name )
       case name
       when 'p'
-        #converter.out << "\n"
+        converter.out << "\n\n"
         converter.endState
       when 'li'
         converter.endState
@@ -262,44 +427,79 @@ module States
         converter.endState
       when 'i', 'em', 'a', 'b', 'strong', 'tt'
         converter.out << '}'
+      when 'div'
+        converter.endState
       when 'blockquote'
         converter.out << '\\end{quote}'
         converter.endState
       end
     end
 
+    REPLACEMENTS = [
+                    [ '\\', '{\\bs}' ],
+                    [ "\303\230", '{\\O}' ],
+
+                    [ "\302\222", "'" ],       # &#146;
+                    [ "\342\200\223", '--' ],  # &#8211;
+                    [ "\342\200\224", '---' ], # &#8212;
+                    [ "\342\200\234", '``' ],  # &#8220
+                    [ "\342\200\235", "''" ],  # &#8221;
+
+                    [ '~', '\\~{}' ], [ '$', '\\$'], [ '%', '\\%'],
+                    [ '_', '\\_'],    [ '#', '\\#'], [ '^', '\\^'],
+                    [ "\342\231\257", "$\\sharp$" ], # 0x266F == 9839 == `#'
+                    [ "\342\231\255", "$\\flat$" ],  # 0x266D == 9837 == `b'
+                    [ '&', '\\\\&' ],
+                    [ ' - ', ' -- ' ],
+                    [ '...', '\\ldots{}' ],
+                    [ '. . .', '\\ldots{}' ],
+                  # [ '.~.~.', '\\ldots{}' ],
+                    [ /(^|\W)'((?:[^']|\w'\w)+)'(\W|\Z)/,
+                      "\\1`{}\\2'{}\\3" ], # "
+                    [ /"([^"]+)"/, "``{}\\1''{}" ], # "
+                    [ /(\W[ACDFG])\\#(?=\W|m)/i, "\\1$\\sharp$" ],
+                    [ /(\W[ABDFG])b(?=\W|m)/, "\\1$\\flat$" ]
+                   ]
     def character( converter, data )
+      REPLACEMENTS.each do |pattern, replacement|
+        data.gsub!( pattern, replacement )
+      end
       converter.out << data
     end
 
     def skippedEntity( converter, name )
-      case name
-      when 'Oslash'
-        converter.out << '\\O'
-      end
+      converter.out << entity( name )
+    end
+
+    def to_s
+      'TextState'
     end
   end
-
 end
 
 
 class Converter < XML::Parser
 
-  class Error < RuntimeError
-  end
+  #class Error < RuntimeError
+  #end
 
-  attr_accessor :out, :buffer, :extra
+  attr_accessor :out, :buffer, :extra, :title
 
-  def initialize
+  def initialize( *args )
+    super( *args )
     reset
   end
   
   def reset( *args )
     super( *args )
-    @out = nil
+    unless @out.nil?
+      @out.close
+      @out = nil
+    end
     @states = [States::RootState]
     @buffer = ""
     @extra = ""
+    @title = nil
   end
 
   def startElement( name, attr )
@@ -329,27 +529,71 @@ class Converter < XML::Parser
     @states.pop
   end
 
-  def convert( input )
-    out << "%%% Converted by seal on #{Time.now}\n"
-    parse( input )
+  def convert( filename )
+    @out << "%%% Converted by seal on #{Time.now}\n"
+    begin
+      parse( File.read( filename ) )
+    rescue XML::Parser::Error
+      print "#{$0}: #{$!} (in line #{self.line} of file #{filename})\n"
+      exit 1
+    end
   end
 
-  #def externalEntityRef( context, base, systemId, publicId )
-  #  extp = XML::Parser.new( self, context )
-  #  extp.parse( open( 'xhtml-lat1.ent' ).read )
-  #  extp.done
-  #end
+  def finished?
+    @states.empty?
+  end
+
 end
 
 if __FILE__ == $0
-  converter = Converter.new
-  converter.out = $stdout
-  #puts converter.setParamEntityParsing( 2 )
 
-  begin
-    converter.convert( $<.read )
-  rescue XML::Parser::Error, Converter::Error
-    print "#{$0}: #{$!} (in line #{converter.line})\n"
-    exit 1
+  def File::chopext( path )
+    path[0...path.rindex('.')]
   end
+  
+  converter = Converter.new
+
+  require 'yaml'
+  residence = File.dirname(__FILE__)
+  songshash = YAML.load_file( File.join( residence, '../data', 'songs.yaml' ) )
+
+  counter = 0
+  dircount = 0
+
+  $stdout.sync = true
+  
+  songshash.each_pair do |dir, songs|
+    dircount += 1
+    print "%2i" % dircount
+    songs.each do |song|
+      converter.reset
+      if not dir && song
+        print " "
+        next
+      end
+      next if song.include?( "@" ) or song.include?( "/" )
+      if dir.include?( "#" )
+        dir = dir.split( '#' )[0]
+      end
+      song.sub!( '*', '' )
+      counter += 1
+      begin
+        input = '/home/heiner/tmp/dylanchords/' + dir + "/" + song
+        $stdout << '.'
+        converter.out = open( "/tmp/" + song + '.tex', 'w' )
+        begin
+          converter.convert( input )
+        rescue XML::Parser::Error
+          print "#{$0}: #{$!} (in line #{converter.line}, file #{song})\n"
+          exit 1
+        end
+      rescue Errno::ENOENT => e
+        puts e
+        print 'x'
+      end
+    end
+    print "\n"
+  end
+
+  puts counter
 end
