@@ -19,33 +19,40 @@ module States
     def entity( name )
       case name
       when 'Oslash' then '{\\O}'
+      when 'rdquo' then '\'\''
+      when 'ldquo' then '``'
       when 'ndash' then '--'
       when 'nbsp' then '~'
-      when 'ldquo' then '``'
-      when 'rdquo' then '\'\''
-      when 'mdash' then '---'
-      when 'lsquo' then '`'
       when 'rsquo' then '\''
+      when 'ntilde' then '\\~n'
+      when 'uuml' then '\\"u'
+      when 'eacute' then '\\\'e'
+      when 'szlig' then '{\\ss}'
+      when 'bull' then '$\\bullet$'
+      when 'ouml' then '\\"o'
+      when 'mdash' then '---'
+      when 'auml' then '\\"a'
+      when 'Aring' then '{\\AA}'
+      when 'euml' then '\\"e'
+      when 'egrave' then '\\`e'
+      when 'hellip' then '\\ldots{}'
+      when 'oacute' then '\\\'o'
+
+      # rest doesn't occur
+      when 'lsquo' then '`'
       when 'acirc' then '\\^a'
       when 'agrave' then '\\`a'
       when 'aacute' then '\\\'a'
-      when 'auml' then '\\"a'
       when 'ecirc' then '\\^e'
-      when 'egrave' then '\\`e'
-      when 'eacute' then '\\\'e'
-      when 'euml' then '\\"e'
       when 'icirc' then '\\^i'
       when 'igrave' then '\\`i'
       when 'iacute' then '\\\'i'
       when 'iuml' then '\\"i'
       when 'ocirc' then '\\^o'
       when 'ograve' then '\\`o'
-      when 'oacute' then '\\\'o'
-      when 'ouml' then '\\"o'
       when 'ucirc' then '\\^u'
       when 'ugrave' then '\\`u'
       when 'uacute' then '\\\'u'
-      when 'uuml' then '\\"u'
       when 'ycirc' then '\\^y'
       when 'ygrave' then '\\`y'
       when 'yacute' then '\\\'y'
@@ -75,19 +82,18 @@ module States
       when 'Yacute' then '\\\'Y'
       when 'Yuml' then '\\"Y'
       when 'atilde' then '\\~a'
-      when 'ntilde' then '\\~n'
       when 'otilde' then '\\~o'
       when 'Atilde' then '\\~A'
       when 'Ntilde' then '\\~N'
       when 'Otilde' then '\\~O'
       when 'oslash' then '{\\o}'
       when 'aring' then '{\\aa}'
-      when 'Aring' then '{\\AA}'
       when 'aelig' then '{\\ae}'
       when 'AElig' then '{\\AE}'
-      when 'szlig' then '{\\ss}'
       when 'ccedil' then '{\\c c}'
       when 'Ccedil' then '{\\c C}'
+      else
+        Seal::err << "Unkown entity #{name}"
       end
     end
   end
@@ -292,23 +298,24 @@ module States
           converter.extra = '\\end{' + classes[1] + '}' + converter.extra
           classes.delete_at( 1 )
         end
+
         case classes[0]
-        when 'tab'
-          converter.out << '\\begin{pre}%' << "\n"
-          converter.buffer = ""
-          converter.newState( TabState )
         when 'verse', 'refrain', 'bridge', 'bridge2', 'bridge3', 'spoken'
           converter.out << '\\begin{' << classes[0] << '}\\begin{pre}'
           converter.out << '\\slshape' if classes[0] == 'spoken'
           converter.out << "%\n"
           converter.extra = '\\end{' + classes[0] + '}' + converter.extra
           converter.newState( PreTextState )
+        when 'tab'
+          converter.out << '\\begin{pre}%' << "\n"
+          converter.buffer = ""
+          converter.newState( TabState )
+        when 'chords'
+          converter.out << '\\begin{alltt}'
+          converter.newState( MiscPreState )
         when 'quote'
           converter.out << '\\begin{quote}\\begin{alltt}'
           converter.extra = '\\end{quote}' + converter.extra
-          converter.newState( MiscPreState )
-        when 'chords'
-          converter.out << '\\begin{alltt}'
           converter.newState( MiscPreState )
         else
           #raise Converter::Error, "unexpected pre attribute #{classes[0]}"          
@@ -324,11 +331,13 @@ module States
 
     def startElement( converter, name, attributes )
       case name
+      when 'pre'
+        handle_pre( converter, attributes )
       when 'p'
         converter.out << "\n\n"
         converter.newState( TextState )
-      when 'pre'
-        handle_pre( converter, attributes )
+      when 'hr'
+        converter.out << "\n\\bobrule\n"
       when 'h1'
         if attributes[ 'class' ] == 'songtitle'
           converter.out << "\\songlbl{"
@@ -347,13 +356,11 @@ module States
       when 'h3', 'h4'
         converter.out << '\\subsubsection*{'
         converter.newState( TextState )
-      when 'hr'
-        converter.out << "\n\\bobrule\n"
-      when 'ul'
-        converter.out << '\\begin{itemize}'
       when 'li'
         converter.out << '\\item '
         converter.newState( TextState )
+      when 'ul'
+        converter.out << '\\begin{itemize}'
       when 'div'
         converter.newState( BodyState )
       when 'blockquote'
@@ -392,17 +399,17 @@ module States
 
     def startElement( converter, name, attr )
       case name
-      when 'i', 'em', 'a'
+      when 'br'
+        converter.out << '\\\\'
+      when 'em', 'a', 'i'
         converter.out << '\\emph{'
       when 'b', 'strong'
         converter.out << '\\textbf{'
-      when 'tt'
-        converter.out << '\\texttt{'
-      when 'br'
-        converter.out << '\\\\'
-      # when 'u', 'small', 'big', 'abbr'
       when 'pre'
         handle_pre( converter, attr )
+      when 'tt'
+        converter.out << '\\texttt{'
+      # when 'u', 'small', 'big', 'abbr'
       when 'div'
         converter.newState( TextState )
       when 'img'
@@ -420,13 +427,13 @@ module States
       when 'p'
         converter.out << "\n\n"
         converter.endState
+      when 'em', 'a', 'strong', 'b', 'tt', 'i'
+        converter.out << '}'
       when 'li'
         converter.endState
       when 'h1', 'h2', 'h3', 'h4'
         converter.out << '}'
         converter.endState
-      when 'i', 'em', 'a', 'b', 'strong', 'tt'
-        converter.out << '}'
       when 'div'
         converter.endState
       when 'blockquote'
