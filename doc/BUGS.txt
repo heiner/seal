@@ -8,7 +8,6 @@ Known bugs in Seal's output
 * Missing image in What can I do for you => New image handling?
   (With <img id="lordy" ... />, for instance?
 * The design may need a cleanup. We want it beautiful!
-* No/poor support for things like <pre class="tab bridge">. Bad!
 
 Misc
 
