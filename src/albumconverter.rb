@@ -145,7 +145,7 @@ class AlbumConverter
       ref = ttl.downcase.gsub( /\\?[#&~]|\\ss/,'' )
 
       index << prefix << '\\pageref{song:' << ref << '} & \\textsc{' \
-            << ttl << '} \\tabularnewline' << "\n"
+            << ttl.downcase << '} \\tabularnewline' << "\n"
     end
 
     index << "\\end{ctabular}\n\\end{flushright}\n\n"

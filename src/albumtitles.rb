@@ -269,7 +269,7 @@ class AlbumConverter
 \\label{album:#{@number}}
 
 \\begin{flushright}
-\\scalebox{6}{\\Huge #{@number}}
+\\scalebox{6}{\\Huge\\scshape #{@number.to_s.downcase}}
 
 \\vspace{5ex}
 #{title_latex}

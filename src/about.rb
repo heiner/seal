@@ -1,15 +1,7 @@
 
 class Seal
-#  REVISION = "$Revision$"
-  SVN_DATE = "$Date$"
-  SVN_ID   = "$Id$"
-
-#  DATE = SVN_DATE.match( /.*\((.*)\).*/ )[ 1 ]
-#  REV  = REVISION.match( /(\d+)/ )[ 1 ].to_i
-
-#  SNAPSHOT = 6
   require 'src/snapshot'
-  VERSION  = "0.1-pre (revision #{REVISION})"
+  VERSION  = "(commit #{COMMIT})"
   DATE = ::DATE
 
   LICENSE = <<EOS
