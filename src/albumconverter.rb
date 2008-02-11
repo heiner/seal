@@ -1,5 +1,5 @@
 
-require 'src/converter'
+require 'src/converter_hpricot'
 require 'src/albumtitles'
 
 module States
@@ -28,8 +28,6 @@ module States
 
     def endElement( converter, name )
       if name == "title"
-        converter.buffer.gsub!( '#', '\\#' )
-        converter.buffer.gsub!( '&', '\\\\&' )
         converter.title = converter.buffer
         converter.buffer = ""
         converter.endState
