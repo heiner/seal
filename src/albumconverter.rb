@@ -24,8 +24,6 @@ module States
   AlbumTitleState = State.new
   class <<AlbumTitleState
 
-    include EntityHandler
-
     def endElement( converter, name )
       if name == "title"
         converter.title = converter.buffer
@@ -38,10 +36,6 @@ module States
 
     def character( converter, data )
       converter.buffer << data
-    end
-
-    def skippedEntity( converter, name )
-      converter.buffer << entity( name )
     end
 
     def to_s

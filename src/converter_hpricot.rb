@@ -13,11 +13,6 @@ module States
     end
   end
 
-  module EntityHandler
-    def entity( *args )
-    end
-  end
-  
   PreTextState = State.new
   class <<PreTextState
 
@@ -63,11 +58,6 @@ module States
     def character( converter, data )
       converter.buffer << data
     end
-
-    #def skippedEntity( converter, name )
-    #  #puts name
-    #  converter.buffer << entity( name )
-    #end
     
     def to_s
       'PreTextState'
@@ -87,6 +77,9 @@ module States
         converter.buffer.gsub!( ' ', '~' )
 
         # correct these in dc-seal!
+        if converter.buffer.include?( "\n\n" )
+          puts "double newline in tab in #{converter.out.path}"
+        end
         converter.buffer.gsub!( "\n\n\n", "\\\\\\~\n" )
         converter.buffer.gsub!( "\n\n", "\\\\\\~\n" )
         converter.buffer.gsub!( "\n", "\\\\\\*\n" )
@@ -99,11 +92,6 @@ module States
     def character( converter, data )
       converter.buffer << data
     end
-
-    # There are no entities in tabs ATM
-    #def skippedEntity( converter, name )
-    #  puts name
-    #end
 
     def to_s
       'TabState'
@@ -138,8 +126,7 @@ module States
         simple = converter.buffer.downcase.gsub( /\\?[#&~]|\\ss/, '' )
         converter.title = converter.buffer
 
-        # ändern?
-        converter.out << converter.buffer.gsub( '!', '\\protect\\excl{}' ) \
+        converter.out << converter.buffer.gsub( '!', '"!' ) \
                       << '}{' << simple << "}"
 
         converter.buffer = ""
@@ -152,10 +139,6 @@ module States
     def character( converter, data )
       converter.buffer << data
     end
-
-    #def skippedEntity( converter, name )
-    #  converter.buffer << entity( name )
-    #end
 
     def to_s
       'SongTitleState'
@@ -183,7 +166,7 @@ module States
 
   module PreHandler
     def handle_pre( converter, attributes )
-      if not attributes[ 'class' ]
+      if attributes[ 'class' ].nil? || attributes[ 'class' ].empty?
         converter.out << '\\begin{alltt}'
         converter.newState( MiscPreState )
       else
@@ -213,7 +196,7 @@ module States
           converter.extra = '\\end{quote}' + converter.extra
           converter.newState( MiscPreState )
         else
-          #raise Converter::Error, "unexpected pre attribute #{classes[0]}"          
+          raise RuntimeError, "unexpected pre attribute #{classes[0]}"
         end
       end
     end
@@ -337,10 +320,6 @@ module States
     end
 
     REPLACEMENTS = [
-                    [ "\303\230", '{\\O}' ], # ?
-
-                    #[ "\342\231\257", "$\\sharp$" ], # 0x266F == 9839 == `#'
-                    #[ "\342\231\255", "$\\flat$" ],  # 0x266D == 9837 == `b'
                     [ ' - ', ' -- ' ],
                     [ '...', '\\ldots{}' ],
                     [ '. . .', '\\ldots{}' ],
@@ -357,10 +336,6 @@ module States
       end
       converter.out << data
     end
-
-    #def skippedEntity( converter, name )
-    #  converter.out << entity( name )
-    #end
 
     def to_s
       'TextState'
@@ -401,11 +376,6 @@ class Converter
     @states.last.character( self, data )
   end
   
-  #def skippedEntity( entityName, is_param_ent )
-  #  #$stderr << entityName
-  #  @states.last.skippedEntity( self, entityName )
-  #end
-
   def texify( string )
     # This version is 10 sec slower on my machine ...
     # output = ""
@@ -422,7 +392,7 @@ class Converter
     # end
     # string.replace( output )
     
-    string.gsub!( "\\", "\\stringbackslash{}" )
+    string.gsub!( "\\", "\\textbackslash{}" )
     string.gsub!( "~",  "\\~{}" )
     string.gsub!( "$",  "\\$" )
     string.gsub!( "%",  "\\%" )
@@ -430,11 +400,10 @@ class Converter
     string.gsub!( "^",  "\\^" )
   end
   
-  def entities_to_latin1( text )
+  def entities_to_TeX( text )
     text.gsub!( /&\#?\w+;/ ) do |entity|
       case entity[1...-1]
 
-      # besser die unten!
       when 'Oslash' then '\\O{}'
       when 'quot'   then '"'
       when 'ldquo', '#8220' then '``'
@@ -579,20 +548,17 @@ class Converter
         text = child.to_html
         texify( text )
         if text.include?( "&" )
-          entities_to_latin1( text )
+          entities_to_TeX( text )
         end
         text.gsub!( "&",  "\\&" )
         text.gsub!( "#",  "\\#" )
         character( text ) 
       elsif child.xmldecl? or child.doctype? or child.comment?
-#        puts "Comment"
       else
-        p child
+        puts "Unexpacted element type: #{child.class}"
+        #exit 1
       end
     end
   end
 
-end
-
-if __FILE__ == $0
 end
