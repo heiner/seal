@@ -76,12 +76,8 @@ module States
         converter.buffer.gsub!( '--', '{-}{-}' )
         converter.buffer.gsub!( ' ', '~' )
 
-        # correct these in dc-seal!
-        if converter.buffer.include?( "\n\n" )
-          puts "double newline in tab in #{converter.out.path}"
-        end
-        converter.buffer.gsub!( "\n\n\n", "\\\\\\~\n" )
-        converter.buffer.gsub!( "\n\n", "\\\\\\~\n" )
+        converter.buffer.gsub!( "\n\n\n", "\n\n" ) # for a_change_is_gonna_come
+        converter.buffer.gsub!( "\n\n", "\\vspace{\\baselineskip}\\\\\\*" )
         converter.buffer.gsub!( "\n", "\\\\\\*\n" )
         converter.out << converter.buffer << "\n" << '\\end{pre}'
         converter.buffer = ""

@@ -98,13 +98,20 @@ class Seal
 Preface & \\emph{\\pageref{preface}}&&&\\tabularnewline
 Roadmaps for the Soul & \\emph{\\pageref{roadmaps}}&&&\\tabularnewline
 Harp Keys & \\emph{\\pageref{harpkeys}}&&&\\tabularnewline
+&&&&\\tabularnewline
 EOS
   
       half = contents.size.quo(2).ceil
       0.upto( half-1 ) do |i|
         number, title = contents[i]
+        if number =~ /[A-Z]/
+          # faked small caps in the ToC
+          printnumber = "\\small{#{number}}"
+        else
+          printnumber = number
+        end
         toc << <<EOS
-\\textbf{#{number}}$\\quad$#{title} & \\emph{\\pageref{album:#{number}}} & & 
+\\textbf{#{printnumber}}$\\quad$#{title} & \\emph{\\pageref{album:#{number}}} & & 
 EOS
 
         if i + half < contents.size
@@ -113,8 +120,14 @@ EOS
             # spacing between albums and misc. sections
             toc << "&"
           else
+            if number =~ /[A-Z]/
+              # faked small caps in the ToC
+              printnumber = "\\small{#{number}}"
+            else
+              printnumber = number
+            end
             toc << <<EOS
-\\textbf{#{number}}$\\quad$#{title} & \\emph{\\pageref{album:#{number}}}
+\\textbf{#{printnumber}}$\\quad$#{title} & \\emph{\\pageref{album:#{number}}}
 EOS
           end
         else
@@ -165,7 +178,7 @@ EOS
 \\thispagestyle{empty}
 \\vspace*\\fill
 \\begin{flushleft}
-{\\small Created by \\texttt{seal} version #{Seal::VERSION}.\\\\
+{\\small Created by \\texttt{seal} (commit #{Seal::COMMIT}).\\\\
 Typeset using \\LaTeX\\ on \\today.}
 \\end{flushleft}
 EOS
@@ -217,7 +230,7 @@ if __FILE__ == $0
   options = { :config => '\\openany' }
   opts = OptionParser.new do |opts|
     opts.banner = <<EOS
-seal #{Seal::VERSION} from #{Seal::DATE}
+seal (commit #{Seal::COMMIT}) from #{Seal::DATE}
 Usage: seal-convert [options] source [destination]
 
 seal-convert is a command line tool to convert
@@ -226,7 +239,7 @@ the Dylanchords HTML files to LaTeX
 Options:
 EOS
 
-    opts.version = Seal::VERSION
+    opts.version = "from commit #{Seal::COMMIT}"
 
     opts.on( "-f", "--[no-]force", "Overwrite existing directories" ) do |f|
       options[ :force ] = f

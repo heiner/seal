@@ -66,7 +66,7 @@ if __FILE__ == $0
   options = Hash.new
   opts = OptionParser.new do |opts|
     opts.banner = <<EOS
-seal #{Seal::VERSION} from #{Seal::DATE}
+seal (commit #{Seal::COMMIT}) from #{Seal::DATE}
 Usage: seal-tex [options] [directory]
 
 seal-tex is a simple command line tool to TeX
@@ -76,7 +76,7 @@ has created.
 Options:
 EOS
 
-    opts.version = Seal::VERSION
+    opts.version = "from commit #{Seal::COMMIT}"
 
     opts.on( "--pdf", "Create PDF output (default on MS Windows)" ) do
       options[ :ps ] = false

@@ -1,7 +1,7 @@
 
 class Seal
   require 'src/snapshot'
-  VERSION  = "(commit #{COMMIT})"
+  COMMIT  = COMMIT
   DATE = ::DATE
 
   LICENSE = <<EOS
