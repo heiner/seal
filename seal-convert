@@ -147,7 +147,7 @@ EOS
   def setup
     dest = @options[ :destination ]
     
-    if File::exists?( dest )
+    if File::exist?( dest )
       if @options[ :force ] or ask( "Directory `#{dest}' exists. Overwrite?" )
         rm_rf( Dir::glob( File::join( dest, "*[^~]" ) ) )
       else
@@ -164,7 +164,7 @@ EOS
       if album.include?( ?# )
         dir, ext = album.split( '#' )
         dir = File::join( dest, dir )
-        if not File::exists?( dir )
+        if not File::exist?( dir )
           mkdir( dir )
         end
       else
@@ -187,6 +187,7 @@ EOS
     if @options[ :config ].nil? or @options[ :config ].empty?
       @options[ :config ] = "\\openany"
     end
+    return unless @options[ :config ].respond_to?( :each )
     File.open( File.join( dest, 'config.tex' ), "w" ) do |config|
       @options[ :config ].each do |option|
         config << option << "\n"

@@ -110,7 +110,7 @@ EOS
   end
 
   options[ :directory ] = ARGV.shift||'book'
-  if not File::exists?( options[ :directory ] )
+  if not File::exist?( options[ :directory ] )
     $stderr << "Error: Directory `#{options[ :directory ]}' not found. " \
          "Did you run seal-convert?\n"
     exit( 2 )
