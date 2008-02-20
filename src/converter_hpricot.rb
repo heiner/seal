@@ -372,30 +372,6 @@ class Converter
     @states.last.character( self, data )
   end
   
-  def texify( string )
-    # This version is 10 sec slower on my machine ...
-    # output = ""
-    # string.each_byte do |byte|
-    #   case byte
-    #   when ?\\ then output << "\\textbackslash{}"
-    #   when ?~  then output << "\\~{}"
-    #   when ?$  then output << "\\$"
-    #   when ?%  then output << "\\%"
-    #   when ?_  then output << "\\_"
-    #   when ?^  then output << "\\^"
-    #   else         output << byte.chr
-    #   end
-    # end
-    # string.replace( output )
-    
-    string.gsub!( "\\", "\\textbackslash{}" )
-    string.gsub!( "~",  "\\~{}" )
-    string.gsub!( "$",  "\\$" )
-    string.gsub!( "%",  "\\%" )
-    string.gsub!( "_",  "\\_" )
-    string.gsub!( "^",  "\\^" )
-  end
-  
   def entities_to_TeX( text )
     text.gsub!( /&\#?\w+;/ ) do |entity|
       case entity[1...-1]
@@ -420,7 +396,7 @@ class Converter
       when 'egrave' then '\\`e'
       when 'hellip' then '\\ldots{}'
       when 'oacute' then '\\\'o'
-      when 'amp'    then '\\&'
+      when 'amp'    then '&' # escaped later
       when 'lt'     then '<'
       when 'gt'     then '>'
 
@@ -519,7 +495,8 @@ class Converter
   def convert( filename )
     @out << "%%% Converted by seal on #{Time.now}\n"
     begin
-      doc = Hpricot.parse( File.read( filename ) )
+      # Replace backslash (\) now, so we need not touch backslashes anymore.
+      doc = Hpricot.parse( File.read( filename ).gsub( "\\", "\\textbackslash{}" ) )
       traverse( doc )
     rescue Hpricot::Error => e
       puts e
@@ -542,13 +519,12 @@ class Converter
       elsif child.text?
         # using to_html to preserve entities
         text = child.to_html
-        texify( text )
-        if text.include?( "&" )
-          entities_to_TeX( text )
-        end
-        text.gsub!( "&",  "\\&" )
-        text.gsub!( "#",  "\\#" )
-        character( text ) 
+
+        text.gsub!( /([~$%_^])/, "\\\1{}" )
+        entities_to_TeX( text )
+        text.gsub!( /([&#])/,  "\\\1" )
+
+        character( text )
       elsif child.xmldecl? or child.doctype? or child.comment?
       else
         puts "Unexpacted element type: #{child.class}"
