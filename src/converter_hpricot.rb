@@ -16,18 +16,46 @@ module States
   PreTextState = State.new
   class <<PreTextState
 
-    def chordline?( line )
-      line.rstrip!
-      rate = 0
-      rate += line.count(' ').to_f.quo(line.length)
-      rate += line.count('~').to_f.quo(line.length)
-      rate += 0.6 if line.length < 4
-      rate += 0.2 if line.include?( '#' )
-      rate += line.count('/')/4.0
-      rate += line.count('.')/10.0
-      rate += 0.1  if line.count('[') + line.count(']') >= 3
-      rate >= 0.6
-    end
+    ### The old chordline-testing method. Replaced by a new regex-approach.
+    #def chordline?( line )
+    #  line.rstrip!
+    #  rate = 0
+    #  rate += line.count(' ').to_f.quo(line.length)
+    #  rate += line.count('~').to_f.quo(line.length)
+    #  rate += 0.6 if line.length < 4
+    #  rate += 0.2 if line.include?( '#' )
+    #  rate += line.count('/')/4.0
+    #  rate += line.count('.')/10.0
+    #  rate += 0.1  if line.count('[') + line.count(']') >= 3
+    #
+    #  flag = ( rate >= 0.6 ? '*' : ' ' )
+    #  $chordlines << ("%05.2f\t" % rate).sub( '0', flag ) << line << "\n"
+    #  rate >= 0.6
+    #end
+
+
+    ### The new chordline-testing code.
+    # Some false positives of this method:
+    #   "F.~Scott~Fitzgerald's~books", Ain't~it~clear~that~.~.~.
+    # Some false negatives of this method:
+    #   I~am~homeless,~come~and~take~me~~~~~~~~~~~~~~~~~~~~~~~~G~~~~~~~~~~~~~~G/d~~D7~G
+    #     (from 04_anotherside/spanish_harlem)
+    #   :~~~~.~~~~.~~~~.~~~:~~.~~.~~.~~:~~.~~.~~:~~.~~.~~.~~.~~.
+    #     (04_anotherside/ishallbefree10)
+
+    CHORDLINE_REGEX = / ^                      # Beginning
+                        [.~]*                  # Any number of spaces or dots
+                        (?: \|:? )?            # optional | or |:
+                        [("]?[A-G][")]?        # a key (optionally with decoration)
+                        (?: b | \# )?          # optionally a flat or sharp, like C#, Am
+                        (?: m | maj | add | sus )?
+                        (?:\d\d?)?             # like Fmaj7,  Dm7, D11
+                        (?: \/[a-gA-G] )?      # like C backslash g
+                        '?                     # like Dm'
+                        (?! [-~]+[a-zH-QS-Z] ) # exclude lines like "A~lot~of~people ..."
+                                               # but not "D~~~~~~~~Riff~3"
+                        \W
+                      /x
 
     def endElement( converter, name )
       if name == "pre"
@@ -36,13 +64,18 @@ module States
 
         converter.buffer.gsub!( '[', '{\\relax}[' )
         converter.buffer.gsub!( ' ', '~' )
-        converter.buffer.gsub!('--','{-}{-}')
+        converter.buffer.gsub!( '--','{-}{-}' )
 
         converter.buffer.each_line do |line|
           line.chomp!
           if line.empty?
             converter.out << "~\\\\\n"
-          elsif chordline?( line )
+          elsif ( line =~ CHORDLINE_REGEX or
+                  line =~ /^~*\(?\/[a-g]/ or
+                  line =~ /^~*\*\)/       or
+                  line =~ /^~*$/          or
+                  line.include?( "{-}-" )
+                )
             converter.out << line << "\\\\*\\relax\n"
           else
             converter.out << line << "\\\\ \\relax\n"
@@ -520,9 +553,9 @@ class Converter
         # using to_html to preserve entities
         text = child.to_html
 
-        text.gsub!( /([~$%_^])/, "\\\1{}" )
+        text.gsub!( /([~$%_^])/, '\\\\\1{}' )
         entities_to_TeX( text )
-        text.gsub!( /([&#])/,  "\\\1" )
+        text.gsub!( /([&#])/,    '\\\\\1' )
 
         character( text )
       elsif child.xmldecl? or child.doctype? or child.comment?
