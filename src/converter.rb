@@ -388,21 +388,22 @@ class Converter
       @out = nil
     end
     @states = [States::State.new, States::RootState]
+    @state = @states.last
     @buffer = ""
     @extra = ""
     @title = nil
   end
 
   def startElement( name, attr )
-    @states.last.startElement( self, name, attr )
+    @state.startElement( self, name, attr )
   end
 
   def endElement( name )
-    @states.last.endElement( self, name )
+    @state.endElement( self, name )
   end
 
   def character( data )
-    @states.last.character( self, data )
+    @state.character( self, data )
   end
   
   def entities_to_TeX( text )
@@ -517,12 +518,14 @@ class Converter
 
   def newState( state )
     @states.push( state )
+    @state = state
   end
 
   def endState
     self.out << extra
     @extra = ""
     @states.pop
+    @state = @states.last
   end
 
   def convert( filename )
