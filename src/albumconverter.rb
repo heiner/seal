@@ -1,5 +1,5 @@
 
-require 'src/converter_hpricot'
+require 'src/converter'
 require 'src/albumtitles'
 
 module States

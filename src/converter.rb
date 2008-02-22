@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'xml/parser'
+require 'hpricot'
 
 module States
 
@@ -11,110 +11,51 @@ module States
     end
     def character( converter, data )
     end
-    def skippedEntity( converter, name )
-    end
   end
 
-  module EntityHandler
-    def entity( name )
-      case name
-      when 'Oslash' then '{\\O}'
-      when 'rdquo' then '\'\''
-      when 'ldquo' then '``'
-      when 'ndash' then '--'
-      when 'nbsp' then '~'
-      when 'rsquo' then '\''
-      when 'ntilde' then '\\~n'
-      when 'uuml' then '\\"u'
-      when 'eacute' then '\\\'e'
-      when 'szlig' then '{\\ss}'
-      when 'bull' then '$\\bullet$'
-      when 'ouml' then '\\"o'
-      when 'mdash' then '---'
-      when 'auml' then '\\"a'
-      when 'Aring' then '{\\AA}'
-      when 'euml' then '\\"e'
-      when 'egrave' then '\\`e'
-      when 'hellip' then '\\ldots{}'
-      when 'oacute' then '\\\'o'
-
-      # rest doesn't occur
-      when 'lsquo' then '`'
-      when 'acirc' then '\\^a'
-      when 'agrave' then '\\`a'
-      when 'aacute' then '\\\'a'
-      when 'ecirc' then '\\^e'
-      when 'icirc' then '\\^i'
-      when 'igrave' then '\\`i'
-      when 'iacute' then '\\\'i'
-      when 'iuml' then '\\"i'
-      when 'ocirc' then '\\^o'
-      when 'ograve' then '\\`o'
-      when 'ucirc' then '\\^u'
-      when 'ugrave' then '\\`u'
-      when 'uacute' then '\\\'u'
-      when 'ycirc' then '\\^y'
-      when 'ygrave' then '\\`y'
-      when 'yacute' then '\\\'y'
-      when 'yuml' then '\\"y'
-      when 'Acirc' then '\\^A'
-      when 'Agrave' then '\\`A'
-      when 'Aacute' then '\\\'A'
-      when 'Auml' then '\\"A'
-      when 'Ecirc' then '\\^E'
-      when 'Egrave' then '\\`E'
-      when 'Eacute' then '\\\'E'
-      when 'Euml' then '\\"E'
-      when 'Icirc' then '\\^I'
-      when 'Igrave' then '\\`I'
-      when 'Iacute' then '\\\'I'
-      when 'Iuml' then '\\"I'
-      when 'Ocirc' then '\\^O'
-      when 'Ograve' then '\\`O'
-      when 'Oacute' then '\\\'O'
-      when 'Ouml' then '\\"O'
-      when 'Ucirc' then '\\^U'
-      when 'Ugrave' then '\\`U'
-      when 'Uacute' then '\\\'U'
-      when 'Uuml' then '\\"U'
-      when 'Ycirc' then '\\^Y'
-      when 'Ygrave' then '\\`Y'
-      when 'Yacute' then '\\\'Y'
-      when 'Yuml' then '\\"Y'
-      when 'atilde' then '\\~a'
-      when 'otilde' then '\\~o'
-      when 'Atilde' then '\\~A'
-      when 'Ntilde' then '\\~N'
-      when 'Otilde' then '\\~O'
-      when 'oslash' then '{\\o}'
-      when 'aring' then '{\\aa}'
-      when 'aelig' then '{\\ae}'
-      when 'AElig' then '{\\AE}'
-      when 'ccedil' then '{\\c c}'
-      when 'Ccedil' then '{\\c C}'
-      else
-        Seal::err << "Unkown entity #{name}"
-      end
-    end
-  end
-  
   PreTextState = State.new
   class <<PreTextState
 
-    include EntityHandler
+    ### The old chordline-testing method. Replaced by a new regex-approach.
+    #def chordline?( line )
+    #  line.rstrip!
+    #  rate = 0
+    #  rate += line.count(' ').to_f.quo(line.length)
+    #  rate += line.count('~').to_f.quo(line.length)
+    #  rate += 0.6 if line.length < 4
+    #  rate += 0.2 if line.include?( '#' )
+    #  rate += line.count('/')/4.0
+    #  rate += line.count('.')/10.0
+    #  rate += 0.1  if line.count('[') + line.count(']') >= 3
+    #
+    #  flag = ( rate >= 0.6 ? '*' : ' ' )
+    #  $chordlines << ("%05.2f\t" % rate).sub( '0', flag ) << line << "\n"
+    #  rate >= 0.6
+    #end
 
-    def chordline?( line )
-      line.rstrip!
-      rate = 0
-      rate += line.count(' ').to_f.quo(line.length)
-      rate += line.count('~').to_f.quo(line.length)
-      rate += 0.6 if line.length < 4
-      rate += 0.2 if line.include?( '#' )
-      rate += line.count('/')/4.0
-      rate += line.count('.')/10.0
-      rate += 0.1  if line.count('[') + line.count(']') >= 3
-      rate >= 0.6
-    end
+
+    ### The new chordline-testing code.
+    # Some false positives of this method:
+    #   "F.~Scott~Fitzgerald's~books", Ain't~it~clear~that~.~.~.
+    # Some false negatives of this method:
+    #   I~am~homeless,~come~and~take~me~~~~~~~~~~~~~~~~~~~~~~~~G~~~~~~~~~~~~~~G/d~~D7~G
+    #     (from 04_anotherside/spanish_harlem)
+    #   :~~~~.~~~~.~~~~.~~~:~~.~~.~~.~~:~~.~~.~~:~~.~~.~~.~~.~~.
+    #     (04_anotherside/ishallbefree10)
+
+    CHORDLINE_REGEX = / ^                      # Beginning
+                        [.~]*                  # Any number of spaces or dots
+                        (?: \|:? )?            # optional | or |:
+                        [("]?[A-G][")]?        # a key (optionally with decoration)
+                        (?: b | \# )?          # optionally a flat or sharp, like C#, Am
+                        (?: m | maj | add | sus )?
+                        (?:\d\d?)?             # like Fmaj7,  Dm7, D11
+                        (?: \/[a-gA-G] )?      # like C backslash g
+                        '?                     # like Dm'
+                        (?! [-~]+[a-zH-QS-Z] ) # exclude lines like "A~lot~of~people ..."
+                                               # but not "D~~~~~~~~Riff~3"
+                        \W
+                      /x
 
     def endElement( converter, name )
       if name == "pre"
@@ -122,19 +63,19 @@ module States
         converter.buffer.chomp!
 
         converter.buffer.gsub!( '[', '{\\relax}[' )
-        converter.buffer.gsub!( '$', '\\$' )
-        converter.buffer.gsub!( '%', '\\%' )
-        converter.buffer.gsub!( '_', '\\_' )
-        converter.buffer.gsub!( '#', '\\#' )
-        converter.buffer.gsub!( '^', '\\^' )
         converter.buffer.gsub!( ' ', '~' )
-        converter.buffer.gsub!('--','{-}{-}')
+        converter.buffer.gsub!( '--','{-}{-}' )
 
         converter.buffer.each_line do |line|
           line.chomp!
           if line.empty?
             converter.out << "~\\\\\n"
-          elsif chordline?( line )
+          elsif ( line =~ CHORDLINE_REGEX or
+                  line =~ /^~*\(?\/[a-g]/ or
+                  line =~ /^~*\*\)/       or
+                  line =~ /^~*$/          or
+                  line.include?( "{-}-" )
+                )
             converter.out << line << "\\\\*\\relax\n"
           else
             converter.out << line << "\\\\ \\relax\n"
@@ -148,14 +89,7 @@ module States
     end
 
     def character( converter, data )
-      data.gsub!( '\\', '{\\bs}' )
-      data.gsub!( '~', '\\~{}' )
       converter.buffer << data
-    end
-
-    def skippedEntity( converter, name )
-      #puts name
-      converter.buffer << entity( name )
     end
     
     def to_s
@@ -170,19 +104,13 @@ module States
       if name == "pre"
         converter.buffer.rstrip!
         converter.buffer.slice!( 0 ) while converter.buffer[0] == ?\n
-        converter.buffer.gsub!( '~', '\\~{}' )
-        converter.buffer.gsub!( '\\', '{\\bs}' )
-        converter.buffer.gsub!( '$', '\\$' )
-        converter.buffer.gsub!( '%', '\\%' )
-        converter.buffer.gsub!( '_', '\\_' )
         converter.buffer.gsub!( '[', "{\\relax}[" )
-        converter.buffer.gsub!( '#', '\\#' )
-        converter.buffer.gsub!( '^', '\\^' )
         converter.buffer.gsub!( "\t", '~'*8 )
         converter.buffer.gsub!( '--', '{-}{-}' )
         converter.buffer.gsub!( ' ', '~' )
-        converter.buffer.gsub!( "\n\n\n", "\\\\\\~\n" )
-        converter.buffer.gsub!( "\n\n", "\\\\\\~\n" )
+
+        converter.buffer.gsub!( "\n\n\n", "\n\n" ) # for a_change_is_gonna_come
+        converter.buffer.gsub!( "\n\n", "\\vspace{\\baselineskip}\\\\\\*" )
         converter.buffer.gsub!( "\n", "\\\\\\*\n" )
         converter.out << converter.buffer << "\n" << '\\end{pre}'
         converter.buffer = ""
@@ -193,11 +121,6 @@ module States
     def character( converter, data )
       converter.buffer << data
     end
-
-    # There are no entities in tabs ATM
-    #def skippedEntity( converter, name )
-    #  puts name
-    #end
 
     def to_s
       'TabState'
@@ -214,14 +137,7 @@ module States
     end
 
     def character( converter, data )
-      data.gsub!( '~', '\\~{}' )
-      data.gsub!( '\\', '{\\bs}' )
-      data.gsub!( '$', '\\$' )
-      data.gsub!( '%', '\\%' )
-      data.gsub!( '_', '\\_' )
       data.gsub!( '[', "{\\relax}[" )
-      data.gsub!( '#', '\\#' )
-      data.gsub!( '^', '\\^' )
       data.gsub!( "\t", '~'*8 )
       converter.out << data
     end
@@ -234,17 +150,12 @@ module States
   SongTitleState = State.new
   class <<SongTitleState
 
-    include EntityHandler
-
     def endElement( converter, name )
       if name == "h1"
         simple = converter.buffer.downcase.gsub( /\\?[#&~]|\\ss/, '' )
-
-        converter.buffer.gsub!( '#', '\\#' )
-        converter.buffer.gsub!( '&', '\\\\&' )
         converter.title = converter.buffer
 
-        converter.out << converter.buffer.gsub( '!', '\\protect\\excl{}' ) \
+        converter.out << converter.buffer.gsub( '!', '"!' ) \
                       << '}{' << simple << "}"
 
         converter.buffer = ""
@@ -256,10 +167,6 @@ module States
 
     def character( converter, data )
       converter.buffer << data
-    end
-
-    def skippedEntity( converter, name )
-      converter.buffer << entity( name )
     end
 
     def to_s
@@ -288,7 +195,7 @@ module States
 
   module PreHandler
     def handle_pre( converter, attributes )
-      if not attributes[ 'class' ]
+      if attributes[ 'class' ].nil? || attributes[ 'class' ].empty?
         converter.out << '\\begin{alltt}'
         converter.newState( MiscPreState )
       else
@@ -318,7 +225,7 @@ module States
           converter.extra = '\\end{quote}' + converter.extra
           converter.newState( MiscPreState )
         else
-          #raise Converter::Error, "unexpected pre attribute #{classes[0]}"          
+          raise RuntimeError, "unexpected pre attribute #{classes[0]}"
         end
       end
     end
@@ -395,7 +302,6 @@ module States
   class <<TextState
 
     include PreHandler
-    include EntityHandler
 
     def startElement( converter, name, attr )
       case name
@@ -443,28 +349,14 @@ module States
     end
 
     REPLACEMENTS = [
-                    [ '\\', '{\\bs}' ],
-                    [ "\303\230", '{\\O}' ],
-
-                    [ "\302\222", "'" ],       # &#146;
-                    [ "\342\200\223", '--' ],  # &#8211;
-                    [ "\342\200\224", '---' ], # &#8212;
-                    [ "\342\200\234", '``' ],  # &#8220
-                    [ "\342\200\235", "''" ],  # &#8221;
-
-                    [ '~', '\\~{}' ], [ '$', '\\$'], [ '%', '\\%'],
-                    [ '_', '\\_'],    [ '#', '\\#'], [ '^', '\\^'],
-                    [ "\342\231\257", "$\\sharp$" ], # 0x266F == 9839 == `#'
-                    [ "\342\231\255", "$\\flat$" ],  # 0x266D == 9837 == `b'
-                    [ '&', '\\\\&' ],
                     [ ' - ', ' -- ' ],
                     [ '...', '\\ldots{}' ],
                     [ '. . .', '\\ldots{}' ],
                   # [ '.~.~.', '\\ldots{}' ],
-                    [ /(^|\W)'((?:[^']|\w'\w)+)'(\W|\Z)/,
-                      "\\1`{}\\2'{}\\3" ], # "
-                    [ /"([^"]+)"/, "``{}\\1''{}" ], # "
-                    [ /(\W[ACDFG])\\#(?=\W|m)/i, "\\1$\\sharp$" ],
+                  #  [ /(^|\W)'((?:[^']|\w'\w)+)'(\W|\Z)/,
+                  #    "\\1`{}\\2'{}\\3" ], # "
+                  # [ /"([^"]+)"/, "``{}\\1''{}" ], # "
+                    [ /(\W[ACDFG])\\#(?=\W|m|\d)/i, "\\1$\\sharp$" ],
                     [ /(\W[ABDFG])b(?=\W|m)/, "\\1$\\flat$" ]
                    ]
     def character( converter, data )
@@ -474,10 +366,6 @@ module States
       converter.out << data
     end
 
-    def skippedEntity( converter, name )
-      converter.out << entity( name )
-    end
-
     def to_s
       'TextState'
     end
@@ -485,10 +373,7 @@ module States
 end
 
 
-class Converter < XML::Parser
-
-  #class Error < RuntimeError
-  #end
+class Converter
 
   attr_accessor :out, :buffer, :extra, :title
 
@@ -497,13 +382,12 @@ class Converter < XML::Parser
     reset
   end
   
-  def reset( *args )
-    super( *args )
+  def reset
     unless @out.nil?
       @out.close
       @out = nil
     end
-    @states = [States::RootState]
+    @states = [States::State.new, States::RootState]
     @buffer = ""
     @extra = ""
     @title = nil
@@ -521,9 +405,114 @@ class Converter < XML::Parser
     @states.last.character( self, data )
   end
   
-  def skippedEntity( entityName, is_param_ent )
-    #$stderr << entityName
-    @states.last.skippedEntity( self, entityName )
+  def entities_to_TeX( text )
+    text.gsub!( /&\#?\w+;/ ) do |entity|
+      case entity[1...-1]
+
+      when 'Oslash' then '\\O{}'
+      when 'quot'   then '"'
+      when 'ldquo', '#8220' then '``'
+      when 'rdquo', '#8221' then "''"
+      when 'ndash', '#8211' then '--'
+      when 'nbsp' then '~'
+      when 'rsquo', '#146' then "'"
+      when 'ntilde' then '\\~n'
+      when 'uuml' then '\\"u'
+      when 'eacute' then '\\\'e'
+      when 'szlig' then '\\ss{}'
+      when 'bull' then '$\\bullet$'
+      when 'ouml' then '\\"o'
+      when 'mdash', '#8212' then '---'
+      when 'auml' then '\\"a'
+      when 'Aring' then '\\AA{}'
+      when 'euml' then '\\"e'
+      when 'egrave' then '\\`e'
+      when 'hellip' then '\\ldots{}'
+      when 'oacute' then '\\\'o'
+      when 'amp'    then '&' # escaped later
+      when 'lt'     then '<'
+      when 'gt'     then '>'
+
+#       when 'Oslash' then "\xD8"
+#       when 'quot'   then '"'
+#       when 'rdquo'  then "{''}"
+#       when 'ldquo'  then "{``}"
+#       when 'ndash', '#8211'  then "--"
+#       when 'nbsp'   then '~'
+#       when 'rsquo'  then "{'}"
+#       when 'ntilde' then "\xF1"
+#       when 'uuml'   then "\xFC"
+#       when 'eacute' then "\xE9"
+#       when 'szlig'  then "\xDF"
+#       when 'ouml'   then "\xD6"
+#       when 'mdash'  then "---"
+#       when 'auml'   then "\xE4"
+#       when 'Aring'  then "\xC5"
+#       when 'euml'   then "\xEB"
+#       when 'egrave' then "\xE8"
+#       when 'oacute' then "\xF3"
+#       when 'amp'    then '\\&'
+#       when 'lt'     then '<'
+#       when 'gt'     then '>'
+
+      # rest doesn't occur
+#       when 'lsquo' then '`'
+#       when 'acirc' then '\\^a'
+#       when 'agrave' then '\\`a'
+#       when 'aacute' then '\\\'a'
+#       when 'ecirc' then '\\^e'
+#       when 'icirc' then '\\^i'
+#       when 'igrave' then '\\`i'
+#       when 'iacute' then '\\\'i'
+#       when 'iuml' then '\\"i'
+#       when 'ocirc' then '\\^o'
+#       when 'ograve' then '\\`o'
+#       when 'ucirc' then '\\^u'
+#       when 'ugrave' then '\\`u'
+#       when 'uacute' then '\\\'u'
+#       when 'ycirc' then '\\^y'
+#       when 'ygrave' then '\\`y'
+#       when 'yacute' then '\\\'y'
+#       when 'yuml' then '\\"y'
+#       when 'Acirc' then '\\^A'
+#       when 'Agrave' then '\\`A'
+#       when 'Aacute' then '\\\'A'
+#       when 'Auml' then '\\"A'
+#       when 'Ecirc' then '\\^E'
+#       when 'Egrave' then '\\`E'
+#       when 'Eacute' then '\\\'E'
+#       when 'Euml' then '\\"E'
+#       when 'Icirc' then '\\^I'
+#       when 'Igrave' then '\\`I'
+#       when 'Iacute' then '\\\'I'
+#       when 'Iuml' then '\\"I'
+#       when 'Ocirc' then '\\^O'
+#       when 'Ograve' then '\\`O'
+#       when 'Oacute' then '\\\'O'
+#       when 'Ouml' then '\\"O'
+#       when 'Ucirc' then '\\^U'
+#       when 'Ugrave' then '\\`U'
+#       when 'Uacute' then '\\\'U'
+#       when 'Uuml' then '\\"U'
+#       when 'Ycirc' then '\\^Y'
+#       when 'Ygrave' then '\\`Y'
+#       when 'Yacute' then '\\\'Y'
+#       when 'Yuml' then '\\"Y'
+#       when 'atilde' then '\\~a'
+#       when 'otilde' then '\\~o'
+#       when 'Atilde' then '\\~A'
+#       when 'Ntilde' then '\\~N'
+#       when 'Otilde' then '\\~O'
+#       when 'oslash' then '{\\o}'
+#       when 'aring' then '{\\aa}'
+#       when 'aelig' then '{\\ae}'
+#       when 'AElig' then '{\\AE}'
+#       when 'ccedil' then '{\\c c}'
+#       when 'Ccedil' then '{\\c C}'
+      else
+        Seal::err << "Unkown entity #{entity} ignored for #{@out.path}\n"
+      end
+    end
   end
 
   def newState( state )
@@ -539,68 +528,42 @@ class Converter < XML::Parser
   def convert( filename )
     @out << "%%% Converted by seal on #{Time.now}\n"
     begin
-      parse( File.read( filename ) )
-    rescue XML::Parser::Error
-      print "#{$0}: #{$!} (in line #{self.line} of file #{filename})\n"
+      # Replace backslash (\) now, so we need not touch backslashes anymore.
+      doc = Hpricot.parse( File.read( filename ).gsub( "\\", "\\textbackslash{}" ) )
+      traverse( doc )
+    rescue Hpricot::Error => e
+      puts e
       exit 1
     end
   end
 
   def finished?
-    @states.empty?
+    @states.length == 1
   end
 
-end
+  private
 
-if __FILE__ == $0
+  def traverse( elem )
+    elem.each_child do |child|
+      if child.elem?
+        startElement( child.name, child.attributes )
+        traverse( child )
+        endElement( child.name )
+      elsif child.text?
+        # using to_html to preserve entities
+        text = child.to_html
 
-  def File::chopext( path )
-    path[0...path.rindex('.')]
-  end
-  
-  converter = Converter.new
+        text.gsub!( /([~$%_^])/, '\\\\\1{}' )
+        entities_to_TeX( text )
+        text.gsub!( /([&#])/,    '\\\\\1' )
 
-  require 'yaml'
-  residence = File.dirname(__FILE__)
-  songshash = YAML.load_file( File.join( residence, '../data', 'songs.yaml' ) )
-
-  counter = 0
-  dircount = 0
-
-  $stdout.sync = true
-  
-  songshash.each_pair do |dir, songs|
-    dircount += 1
-    print "%2i" % dircount
-    songs.each do |song|
-      converter.reset
-      if not dir && song
-        print " "
-        next
-      end
-      next if song.include?( "@" ) or song.include?( "/" )
-      if dir.include?( "#" )
-        dir = dir.split( '#' )[0]
-      end
-      song.sub!( '*', '' )
-      counter += 1
-      begin
-        input = '/home/heiner/tmp/dylanchords/' + dir + "/" + song
-        $stdout << '.'
-        converter.out = open( "/tmp/" + song + '.tex', 'w' )
-        begin
-          converter.convert( input )
-        rescue XML::Parser::Error
-          print "#{$0}: #{$!} (in line #{converter.line}, file #{song})\n"
-          exit 1
-        end
-      rescue Errno::ENOENT => e
-        puts e
-        print 'x'
+        character( text )
+      elsif child.xmldecl? or child.doctype? or child.comment?
+      else
+        puts "Unexpacted element type: #{child.class}"
+        #exit 1
       end
     end
-    print "\n"
   end
 
-  puts counter
 end
