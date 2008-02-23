@@ -16,64 +16,42 @@ module States
   PreTextState = State.new
   class <<PreTextState
 
-    ### The old chordline-testing method. Replaced by a new regex-approach.
-    #def chordline?( line )
-    #  line.rstrip!
-    #  rate = 0
-    #  rate += line.count(' ').to_f.quo(line.length)
-    #  rate += line.count('~').to_f.quo(line.length)
-    #  rate += 0.6 if line.length < 4
-    #  rate += 0.2 if line.include?( '#' )
-    #  rate += line.count('/')/4.0
-    #  rate += line.count('.')/10.0
-    #  rate += 0.1  if line.count('[') + line.count(']') >= 3
-    #
-    #  flag = ( rate >= 0.6 ? '*' : ' ' )
-    #  $chordlines << ("%05.2f\t" % rate).sub( '0', flag ) << line << "\n"
-    #  rate >= 0.6
-    #end
-
-
-    ### The new chordline-testing code.
-    # Some false positives of this method:
-    #   "F.~Scott~Fitzgerald's~books", Ain't~it~clear~that~.~.~.
-    # Some false negatives of this method:
-    #   I~am~homeless,~come~and~take~me~~~~~~~~~~~~~~~~~~~~~~~~G~~~~~~~~~~~~~~G/d~~D7~G
-    #     (from 04_anotherside/spanish_harlem)
-    #   :~~~~.~~~~.~~~~.~~~:~~.~~.~~.~~:~~.~~.~~:~~.~~.~~.~~.~~.
-    #     (04_anotherside/ishallbefree10)
-
-    CHORDLINE_REGEX = / ^                      # Beginning
-                        [.~]*                  # Any number of spaces or dots
-                        (?: \|:? )?            # optional | or |:
-                        [("]?[A-G][")]?        # a key (optionally with decoration)
-                        (?: b | \# )?          # optionally a flat or sharp, like C#, Am
-                        (?: m | maj | add | sus )?
-                        (?:\d\d?)?             # like Fmaj7,  Dm7, D11
-                        (?: \/[a-gA-G] )?      # like C backslash g
-                        '?                     # like Dm'
-                        (?! [-~]+[a-zH-QS-Z] ) # exclude lines like "A~lot~of~people ..."
-                                               # but not "D~~~~~~~~Riff~3"
-                        \W
-                      /x
+    CHORDLINE_REGEX =
+      / ^                      # Beginning
+        [.~]*                  # any number of spaces or dots
+        \[?                    # for lines like "~[C/d]~G/d~~~~~~D7~~~~~G"
+        (?: \|:? [.~]* )?      # optional | or |:, with . or ~ following
+        [("]?[A-G][")]?        # a key (optionally with decoration)
+        (?: b | \# )?          # optionally a flat or sharp, like C#, Ab
+        m?                     # minor key, like Am
+        (?: maj | add | sus | dim )?
+        (?:\d\d?)?             # like Fmaj7,  Dm7, D11
+        (?: \/[a-gA-G] )?      # like C backslash g
+        '?                     # like Dm'
+        (?! [-~]+[a-zH-QS-Z] ) # exclude lines like "A~lot~of~people ..."
+                               # but not "D~~~~~~~~Riff~3"
+        (?: \W | $ )           # don't match "And~watch~...",
+                               # but match "~~~~~Am"
+      /x
 
     def endElement( converter, name )
       if name == "pre"
         converter.buffer.slice!( 0 ) if converter.buffer[0] == ?\n
         converter.buffer.chomp!
 
-        converter.buffer.gsub!( '[', '{\\relax}[' )
         converter.buffer.gsub!( ' ', '~' )
         converter.buffer.gsub!( '--','{-}{-}' )
 
         converter.buffer.each_line do |line|
           line.chomp!
           if line.empty?
-            converter.out << "~\\\\\n"
+            # the \relax after the \\ is to have the \\
+            # not complain about brackets [] on the next line
+            converter.out << "~\\\\ \\relax\n"
           elsif ( line =~ CHORDLINE_REGEX or
                   line =~ /^~*\(?\/[a-g]/ or
                   line =~ /^~*\*\)/       or
-                  line =~ /^~*$/          or
+                  line =~ /^\W*$/         or
                   line.include?( "{-}-" )
                 )
             converter.out << line << "\\\\*\\relax\n"
@@ -110,8 +88,12 @@ module States
         converter.buffer.gsub!( ' ', '~' )
 
         converter.buffer.gsub!( "\n\n\n", "\n\n" ) # for a_change_is_gonna_come
-        converter.buffer.gsub!( "\n\n", "\\vspace{\\baselineskip}\\\\\\*" )
-        converter.buffer.gsub!( "\n", "\\\\\\*\n" )
+
+        # For String#(g)sub(!), \\\\\\ (six backslashes) is the smallest code
+        # that produces \\ as output. See
+        # http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/11037
+        converter.buffer.gsub!( "\n\n", "\\\\\\*[\\baselineskip]" )
+        converter.buffer.gsub!( "\n",   "\\\\\\*\n" )
         converter.out << converter.buffer << "\n" << '\\end{pre}'
         converter.buffer = ""
         converter.endState
