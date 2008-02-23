@@ -17,25 +17,32 @@ module States
   class <<PreTextState
 
     CHORDLINE_REGEX =
-      / ^                      # Beginning
-        [.~]*                  # any number of spaces or dots
-        \[?                    # for lines like "~[C/d]~G/d~~~~~~D7~~~~~G"
-        (?: \|:? [.~]* )?      # optional | or |:, with . or ~ following
+    %r{ ^                      # Beginning
+        [~.]*                  # any number of spaces or dots
+        (?:                    # optionally: 
+          (?: \|[:*]? | \[ )   # "|" or "|:" or "|*" or "["
+          [~.]*                # followed by any number of spaces or dots
+        )?
         [("]?[A-G][")]?        # a key (optionally with decoration)
         (?: b | \# )?          # optionally a flat or sharp, like C#, Ab
         m?                     # minor key, like Am
-        (?: maj | add | sus | dim )?
+        (?: maj | add | sus | dim | o )?
         (?:\d\d?)?             # like Fmaj7,  Dm7, D11
-        (?: \/[a-gA-G] )?      # like C backslash g
+        (?: /[a-gA-G] )?       # like C/g
         '?                     # like Dm'
-        (?! [-~]+[a-zH-QS-Z] ) # exclude lines like "A~lot~of~people ..."
-                               # but not "D~~~~~~~~Riff~3"
-        (?: \W | $ )           # don't match "And~watch~...",
-                               # but match "~~~~~Am"
-      /x
+        # Now: Exclude lines like "A~lot~of~ ..." or "A~~~~~handle~hid ..."
+        #      but not "D~~~~~~~~Riff~3"
+        (?! [-~]{1,5}[a-zH-QS-Z] )
+
+        (?: [^\w'] | $ )        # don't match "And~watch~...", "Go~'way~..."
+                                # but match "~~~~~Am"
+      }x
 
     def endElement( converter, name )
       if name == "pre"
+        #$chordlines ||= File.new( "chordlines.txt", 'w' )
+        #$nochordlines ||= File.new( "nochordlines.txt", 'w' )
+        
         converter.buffer.slice!( 0 ) if converter.buffer[0] == ?\n
         converter.buffer.chomp!
 
@@ -48,14 +55,18 @@ module States
             # the \relax after the \\ is to have the \\
             # not complain about brackets [] on the next line
             converter.out << "~\\\\ \\relax\n"
-          elsif ( line =~ CHORDLINE_REGEX or
-                  line =~ /^~*\(?\/[a-g]/ or
-                  line =~ /^~*\*\)/       or
-                  line =~ /^\W*$/         or
-                  line.include?( "{-}-" )
+          elsif ( line =~ CHORDLINE_REGEX  or
+                  line =~ %r{^ [~.]* \(? /[a-g]}x or
+                  line =~ /^\W*$/          or
+                  line =~ /^ ~+ [*0-9x]/x  or
+                  line =~ /[^a].\briff\b/i or
+                  line =~ /-\}\{-\}\{?-/   or
+                  line =~ /n\.c\./
                 )
+            #$chordlines.puts( line )
             converter.out << line << "\\\\*\\relax\n"
           else
+            #$nochordlines.puts( line )
             converter.out << line << "\\\\ \\relax\n"
           end
         end
