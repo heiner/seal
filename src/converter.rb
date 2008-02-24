@@ -28,7 +28,7 @@ module States
         m?                     # minor key, like Am
         (?: maj | add | sus | dim | o )?
         (?:\d\d?)?             # like Fmaj7,  Dm7, D11
-        (?: /[a-gA-G] )?       # like C/g
+        (?: /[a-gB][b#]? )?    # like C/g or Am/f# or C/Bb (!)
         '?                     # like Dm'
         # Now: Exclude lines like "A~lot~of~ ..." or "A~~~~~handle~hid ..."
         #      but not "D~~~~~~~~Riff~3"
@@ -56,7 +56,7 @@ module States
             # not complain about brackets [] on the next line
             converter.out << "~\\\\ \\relax\n"
           elsif ( line =~ CHORDLINE_REGEX  or
-                  line =~ %r{^ [~.]* \(? /[a-g]}x or
+                  line =~ %r{^ [~.]* \(? /[a-gB]}x or
                   line =~ /^\W*$/          or
                   line =~ /^ ~+ [*0-9x]/x  or
                   line =~ /[^a].\briff\b/i or
@@ -409,6 +409,7 @@ class Converter
       when 'rdquo', '#8221' then "''"
       when 'ndash', '#8211' then '--'
       when 'nbsp' then '~'
+      when 'lsquo' then '`'
       when 'rsquo', '#146' then "'"
       when 'ntilde' then '\\~n'
       when 'uuml' then '\\"u'
@@ -450,7 +451,6 @@ class Converter
 #       when 'gt'     then '>'
 
       # rest doesn't occur
-#       when 'lsquo' then '`'
 #       when 'acirc' then '\\^a'
 #       when 'agrave' then '\\`a'
 #       when 'aacute' then '\\\'a'
@@ -504,7 +504,7 @@ class Converter
 #       when 'ccedil' then '{\\c c}'
 #       when 'Ccedil' then '{\\c C}'
       else
-        Seal::err << "Unkown entity #{entity} ignored for #{@out.path}\n"
+        Seal::err << "Unknown entity #{entity} ignored for #{@out.path}\n"
       end
     end
   end
