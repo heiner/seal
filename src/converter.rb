@@ -40,8 +40,8 @@ module States
 
     def endElement( converter, name )
       if name == "pre"
-        #$chordlines ||= File.new( "chordlines.txt", 'w' )
-        #$nochordlines ||= File.new( "nochordlines.txt", 'w' )
+        $chordlines ||= File.new( "chordlines.txt", 'w' )
+        $nochordlines ||= File.new( "nochordlines.txt", 'w' )
         
         converter.buffer.slice!( 0 ) if converter.buffer[0] == ?\n
         converter.buffer.chomp!
@@ -63,10 +63,10 @@ module States
                   line =~ /-\}\{-\}\{?-/   or
                   line =~ /n\.c\./
                 )
-            #$chordlines.puts( line )
+            $chordlines.puts( line )
             converter.out << line << "\\\\*\\relax\n"
           else
-            #$nochordlines.puts( line )
+            $nochordlines.puts( line )
             converter.out << line << "\\\\ \\relax\n"
           end
         end
@@ -148,7 +148,7 @@ module States
         simple = converter.buffer.downcase.gsub( /\\?[#&~]|\\ss/, '' )
         converter.title = converter.buffer
 
-        converter.out << converter.buffer.gsub( '!', '"!' ) \
+        converter.out << converter.buffer.gsub( '!', '\\textexclaim{}' ) \
                       << '}{' << simple << "}"
 
         converter.buffer = ""
