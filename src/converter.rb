@@ -145,11 +145,12 @@ module States
 
     def endElement( converter, name )
       if name == "h1"
+        #puts converter.buffer if converter.buffer =~ /\\?[#&~]|\\ss/
         simple = converter.buffer.downcase.gsub( /\\?[#&~]|\\ss/, '' )
         converter.title = converter.buffer
 
         converter.out << converter.buffer.gsub( '!', '\\textexclaim{}' ) \
-                      << '}{' << simple << "}"
+                      << '}{' << simple << '}'
 
         converter.buffer = ""
         converter.endState
@@ -300,7 +301,20 @@ module States
       case name
       when 'br'
         converter.out << '\\\\'
-      when 'em', 'a', 'i'
+      when 'a'
+        case attr["class"]
+        when 'recordlink'
+          converter.out << '\\emph{'
+        when 'url'
+          converter.out << '\\emph{'
+        when 'songlink'
+          converter.out << '\\emph{'
+          #converter.extra = 
+        else
+          # puts attr["class"]
+          converter.out << '\\emph{'
+        end
+      when 'em', 'i'
         converter.out << '\\emph{'
       when 'b', 'strong'
         converter.out << '\\textbf{'
