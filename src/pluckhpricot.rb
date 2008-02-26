@@ -9,11 +9,33 @@ rescue LoadError
   exit( 1 )
 end
 
+
 class Converter
+
+  attr_reader :song_title
   
   def initialize
-    @out = File.new( "test.tmp", "w" )
+    @out = nil
+    @song_title = nil
   end
+
+  def convert( in_stream, out_stream )
+    data = in_stream.read
+    @out = out_stream
+
+    @song_title = nil
+
+    # Yes, we do that now!
+    data.gsub( "\\", "\\textbackslash{}" )
+    data.gsub!( /([~$%_^])/, '\\\\\1{}' )
+    entities_to_TeX( data )
+    data.gsub!( /([&#])/,    '\\\\\1' )
+
+    doc = Hpricot( data )
+    body( doc.at( "body" ) )
+  end
+
+  protected
 
   def body( element )
     element.each_child do |child|
@@ -30,9 +52,9 @@ class Converter
           if child.attributes[ 'class' ] == 'songtitle'
             # We assume this <h1> contains no further elements
             child.each_child { |c| raise Converter::Error if c.elem? }
-            title = child.inner_html.gsub( '!', "\\textexclaim{}" )
-            simple = converter.buffer.downcase.gsub( /\\?[#&~]|\\ss/, '' )
-            @out << "\\songlbl{" << title << "}{" << simple << "}"
+            @song_title = child.inner_html.gsub( '!', "\\textexclaim{}" )
+            simple = @song_title.downcase.gsub( /\\?[#&~]|\\ss/, '' )
+            @out << "\\songlbl{" << @song_title << "}{" << simple << "}"
           else
             @out << "\\section*{"
             text( child )
@@ -283,16 +305,93 @@ class Converter
     text.gsub!( "\n",   "\\\\\\*\n" )
     @out << text << "\n\\end{pre}"
   end
-  
-end
 
-class PluckHpricot
-  def initialize( html )
-    @doc = Hpricot( html )
-    @converter = Converter.new
+  def entities_to_TeX( text )
+    text.gsub!( /&\#?\w+;/ ) do |entity|
+      case entity[1...-1]
+
+      when 'Oslash' then '\\O{}'
+      when 'quot'   then '"'
+      when 'ldquo', '#8220' then '``'
+      when 'rdquo', '#8221' then "''"
+      when 'ndash', '#8211' then '--'
+      when 'nbsp' then '~'
+      when 'lsquo' then '`'
+      when 'rsquo', '#146' then "'"
+      when 'ntilde' then '\\~n'
+      when 'uuml' then '\\"u'
+      when 'eacute' then '\\\'e'
+      when 'szlig' then '\\ss{}'
+      when 'bull' then '$\\bullet$'
+      when 'ouml' then '\\"o'
+      when 'mdash', '#8212' then '---'
+      when 'auml' then '\\"a'
+      when 'Aring' then '\\AA{}'
+      when 'euml' then '\\"e'
+      when 'egrave' then '\\`e'
+      when 'hellip' then '\\ldots{}'
+      when 'oacute' then '\\\'o'
+      when 'amp'    then '\\&'
+      when 'lt'     then '<'
+      when 'gt'     then '>'
+
+      # rest doesn't occur (as of yet)
+#       when 'acirc' then '\\^a'
+#       when 'agrave' then '\\`a'
+#       when 'aacute' then '\\\'a'
+#       when 'ecirc' then '\\^e'
+#       when 'icirc' then '\\^i'
+#       when 'igrave' then '\\`i'
+#       when 'iacute' then '\\\'i'
+#       when 'iuml' then '\\"i'
+#       when 'ocirc' then '\\^o'
+#       when 'ograve' then '\\`o'
+#       when 'ucirc' then '\\^u'
+#       when 'ugrave' then '\\`u'
+#       when 'uacute' then '\\\'u'
+#       when 'ycirc' then '\\^y'
+#       when 'ygrave' then '\\`y'
+#       when 'yacute' then '\\\'y'
+#       when 'yuml' then '\\"y'
+#       when 'Acirc' then '\\^A'
+#       when 'Agrave' then '\\`A'
+#       when 'Aacute' then '\\\'A'
+#       when 'Auml' then '\\"A'
+#       when 'Ecirc' then '\\^E'
+#       when 'Egrave' then '\\`E'
+#       when 'Eacute' then '\\\'E'
+#       when 'Euml' then '\\"E'
+#       when 'Icirc' then '\\^I'
+#       when 'Igrave' then '\\`I'
+#       when 'Iacute' then '\\\'I'
+#       when 'Iuml' then '\\"I'
+#       when 'Ocirc' then '\\^O'
+#       when 'Ograve' then '\\`O'
+#       when 'Oacute' then '\\\'O'
+#       when 'Ouml' then '\\"O'
+#       when 'Ucirc' then '\\^U'
+#       when 'Ugrave' then '\\`U'
+#       when 'Uacute' then '\\\'U'
+#       when 'Uuml' then '\\"U'
+#       when 'Ycirc' then '\\^Y'
+#       when 'Ygrave' then '\\`Y'
+#       when 'Yacute' then '\\\'Y'
+#       when 'Yuml' then '\\"Y'
+#       when 'atilde' then '\\~a'
+#       when 'otilde' then '\\~o'
+#       when 'Atilde' then '\\~A'
+#       when 'Ntilde' then '\\~N'
+#       when 'Otilde' then '\\~O'
+#       when 'oslash' then '{\\o}'
+#       when 'aring' then '{\\aa}'
+#       when 'aelig' then '{\\ae}'
+#       when 'AElig' then '{\\AE}'
+#       when 'ccedil' then '{\\c c}'
+#       when 'Ccedil' then '{\\c C}'
+      else
+        Seal::err << "Unknown entity #{entity} ignored for #{@out.path}\n"
+      end
+    end
   end
 
-  def start
-    @converter.body( doc.at( "body" ) )
-  end
 end
