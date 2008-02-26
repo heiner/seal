@@ -1,11 +1,15 @@
 #!/usr/bin/env ruby
 
-require 'hpricot'
+begin
+  require 'hpricot'
+rescue LoadError
+  require 'rubygems' and retry
 
-#require 'forwardable'
+  puts "You need the Hpricot library to run seal-convert."
+  exit( 1 )
+end
 
 class Converter
-  extend Forwardable
   
   def initialize
     @out = File.new( "test.tmp", "w" )
@@ -132,14 +136,16 @@ class Converter
 
   def pre( element )
     css = element.attributes['class']
+
     if css.nil? || css.empty?
       @out << '\\begin{alltt}'
       pre_misc( element )
+
     else
       classes = css.split
       if classes[1]
         @out << "\\begin{#{classes[1]}}"
-        converter.extra = '\\end{' + classes[1] + '}' + converter.extra
+        extra = "\\end{#{classes[1]}}"
         classes.delete_at( 1 )
       end
 
@@ -148,25 +154,33 @@ class Converter
         @out << '\\begin{' << classes[0] << '}\\begin{pre}'
         @out << '\\slshape' if classes[0] == 'spoken'
         @out << "%\n"
-        converter.extra = '\\end{' + classes[0] + '}' + converter.extra
-        converter.newState( PreTextState )
+        pre_text( element )
+        @out << "\\end{#{classes[0]}"
       when 'tab'
-        @out << '\\begin{pre}%' << "\n"
-        converter.buffer = ""
-        converter.newState( TabState )
+        @out << "\\begin{pre}%\n"
+        pre_tab( element )
+        @out << "\\end{pre}"
       when 'chords'
         @out << '\\begin{alltt}'
-        converter.newState( MiscPreState )
+        # we might not need this. Or do something sane.
+        pre_misc( element )
+        @out << '\\end{alltt}'
       when 'quote'
-        @out << '\\begin{quote}\\begin{alltt}'
-        converter.extra = '\\end{quote}' + converter.extra
-        converter.newState( MiscPreState )
+        @out << "\\begin{quote}\\begin{alltt}"
+        extra = "\\end{quote}" + extra
+        pre_misc( element )
       else
-        raise RuntimeError, "unexpected pre attribute #{classes[0]}"
+        raise Converter::Error, "unexpected pre CSS class #{classes[0]}"
       end
+
+      @out << extra
     end
   end
 
+  def pre_misc( element )
+    
+  end
+  
 end
 
 class PluckHpricot
