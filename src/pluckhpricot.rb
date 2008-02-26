@@ -29,7 +29,7 @@ class Converter
         when 'h1'
           if child.attributes[ 'class' ] == 'songtitle'
             # We assume this <h1> contains no further elements
-            child.each_child { |c| raise if c.elem? }
+            child.each_child { |c| raise Converter::Error if c.elem? }
             title = child.inner_html.gsub( '!', "\\textexclaim{}" )
             simple = converter.buffer.downcase.gsub( /\\?[#&~]|\\ss/, '' )
             @out << "\\songlbl{" << title << "}{" << simple << "}"
@@ -50,14 +50,18 @@ class Converter
           @out << "\\subsubsection*{"
           text( child )
           @out << '}'
-        when 'li'
-          @out << "\\item"
-          text( child )
         when 'ul'
-          # Do we want it this way?
           @out << "\\begin{itemize}"
+          child.each_child do |item|
+            if item.elem?
+              raise Converter::Error if item.name != 'li'
+              @out << "\\item"
+              text( child )
+            end # ignore text and comments
+          end
+          @out << "\\end{itemize}"
         when 'div'
-          body( child ) # hehe
+          body( child )
         when 'blockquote'
           @out << "\\begin{quote}"
           text( child )
@@ -138,37 +142,30 @@ class Converter
     css = element.attributes['class']
 
     if css.nil? || css.empty?
-      @out << '\\begin{alltt}'
       pre_misc( element )
-
     else
       classes = css.split
       if classes[1]
         @out << "\\begin{#{classes[1]}}"
         extra = "\\end{#{classes[1]}}"
-        classes.delete_at( 1 )
+        #classes.delete_at( 1 )
       end
 
       case classes[0]
       when 'verse', 'refrain', 'bridge', 'bridge2', 'bridge3', 'spoken'
-        @out << '\\begin{' << classes[0] << '}\\begin{pre}'
+        @out << "\\begin{#{classes[0]}}\n\\begin{pre}"
         @out << '\\slshape' if classes[0] == 'spoken'
         @out << "%\n"
         pre_text( element )
-        @out << "\\end{#{classes[0]}"
+        @out << "\\end{pre}\n\\end{#{classes[0]}"
       when 'tab'
-        @out << "\\begin{pre}%\n"
         pre_tab( element )
-        @out << "\\end{pre}"
       when 'chords'
-        @out << '\\begin{alltt}'
-        # we might not need this. Or do something sane.
         pre_misc( element )
-        @out << '\\end{alltt}'
       when 'quote'
-        @out << "\\begin{quote}\\begin{alltt}"
-        extra = "\\end{quote}" + extra
+        @out << "\\begin{quote}
         pre_misc( element )
+        @out << "\\end{quote}"
       else
         raise Converter::Error, "unexpected pre CSS class #{classes[0]}"
       end
@@ -178,7 +175,113 @@ class Converter
   end
 
   def pre_misc( element )
-    
+    @out << "\\begin{alltt}"
+    # We assume this element contains only text
+    element.each_child do |child|
+      if child.text?
+        text = child.to_html
+        text.gsub!( '[', "{\\relax}[" )
+        text.gsub!( "\t", '~'*8 )
+        @out << text
+      elsif child.elem?
+        raise Converter::Error, "`misc' <pre> tag with child tags"
+      else
+        # write out
+      end
+    end
+    @out << "\\end{alltt}"
+  end
+
+  CHORDLINE_REGEX =
+    %r{ ^                      # Beginning
+        [~.]*                  # any number of spaces or dots
+        (?:                    # optionally: 
+          (?: \|[:*]? | \[ )   # "|" or "|:" or "|*" or "["
+          [~.]*                # followed by any number of spaces or dots
+        )?
+        [("]?[A-G][")]?        # a key (optionally with decoration)
+        (?: b | \# )?          # optionally a flat or sharp, like C#, Ab
+        m?                     # minor key, like Am
+        (?: maj | add | sus | dim | o )?
+        (?:\d\d?)?             # like Fmaj7,  Dm7, D11
+        (?: /[a-gB][b#]? )?    # like C/g or Am/f# or C/Bb (!)
+        '?                     # like Dm'
+        # Now: Exclude lines like "A~lot~of~ ..." or "A~~~~~handle~hid ..."
+        #      but not "D~~~~~~~~Riff~3"
+        (?! [-~]{1,5}[a-zH-QS-Z] )
+
+        (?: [^\w'] | $ )        # don't match "And~watch~...", "Go~'way~..."
+                                # but match "~~~~~Am"
+      }x
+  def pre_text( element )
+    text = ""
+    # We assume this element contains only text
+    element.each_child do |child|
+      if child.text?
+        text += child.to_html
+      elsif child.elem?
+        raise Converter::Error, "`text' <pre> tag with child tags"
+      else
+        # write out
+      end
+    end
+
+    text.slice!( 0 ) if text[0] == ?\n
+    text.chomp!
+
+    text.gsub!( ' ', '~' )
+    text.gsub!( '--','{-}{-}' )
+
+    text.each_line do |line|
+      line.chomp!
+      if line.empty?
+        # the \relax after the \\ is to have the \\
+        # not complain about brackets [] on the next line
+        @out << "~\\\\ \\relax\n"
+      elsif line =~ CHORDLINE_REGEX  or
+            line =~ %r{^ [~.]* \(? /[a-gB]}x or
+            line =~ /^\W*$/          or
+            line =~ /^ ~+ [*0-9x]/x  or
+            line =~ /[^a].\briff\b/i or
+            line =~ /-\}\{-\}\{?-/   or
+            line =~ /n\.c\./
+        @out << line << "\\\\*\\relax\n"
+      else
+        @out << line << "\\\\ \\relax\n"
+      end
+    end
+  end
+
+  def pre_tab( element )
+    @out << "\\begin{pre}%\n"
+
+    tab = ""
+    # We assume this element contains only text
+    element.each_child do |child|
+      if child.text?
+        tab += child.to_html
+      elsif child.elem?
+        raise Converter::Error, "`tab' <pre> tag with child tags"
+      else
+        # write out
+      end
+    end
+
+    text.rstrip!
+    text.slice!( 0 ) while text[0] == ?\n
+    text.gsub!( '[', "{\\relax}[" )
+    text.gsub!( "\t", '~'*8 )
+    text.gsub!( '--', '{-}{-}' )
+    text.gsub!( ' ', '~' )
+
+    text.gsub!( "\n\n\n", "\n\n" ) # for a_change_is_gonna_come
+
+    # For String#(g)sub(!), \\\\\\ (six backslashes) is the smallest code
+    # that produces \\ as output. See
+    # http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/11037
+    text.gsub!( "\n\n", "\\\\\\*[\\baselineskip]" )
+    text.gsub!( "\n",   "\\\\\\*\n" )
+    @out << text << "\n\\end{pre}"
   end
   
 end
