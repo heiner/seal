@@ -1,22 +1,219 @@
-#!/usr/bin/env ruby
 
-require 'hpricot'
+begin
+  require 'hpricot'
+rescue LoadError
+  require 'rubygems' and retry
 
-module States
+  puts "You need the Hpricot library to run seal-convert."
+  exit( 1 )
+end
 
-  class State
-    def startElement( converter, name, attr )
-    end
-    def endElement( converter, name )
-    end
-    def character( converter, data )
+
+class Converter
+
+  class Error < StandardError
+  end
+
+  attr_reader :song_title
+  
+  def initialize
+    @out = nil
+    @song_title = nil
+  end
+
+  def convert( in_stream, out_stream )
+    data = in_stream.read
+    @out = out_stream
+
+    @song_title = nil
+
+    # Yes, we do that now!
+    Converter.preprocess( data )
+
+    doc = Hpricot( data )
+    body( doc.at( "body" ) )
+  end
+
+  def redirect( out_stream )
+    out = @out
+    @out = out_stream
+    yield self
+    @out = out
+  end
+
+  def body( element )
+    element.each_child do |child|
+      if child.elem?
+        case child.name
+        when 'pre'
+          pre( child )
+        when 'p'
+          @out << "\n\n"
+          text( child )
+          @out << "\n\n"
+        when 'hr'
+          @out << "\n\\bobrule\n"
+        when 'h1'
+          if child.attributes[ 'class' ] == 'songtitle'
+            # We assume this <h1> contains no further elements
+            child.each_child { |c| raise Converter::Error if c.elem? }
+            @song_title = child.inner_text
+            simple = @song_title.downcase.gsub( /\\?[#&~]|\\ss/, '' )
+            @out << "\\songlbl{" << @song_title.gsub( '!', "\\textexclaim{}" ) \
+                                 << "}{" << simple << "}"
+          else
+            @out << "\\section*{"
+            text( child )
+            @out << '}'
+          end
+        when 'h2'
+          if child.attributes[ 'class' ] == 'songversion'
+            @out << "\\songversion{"
+          else
+            @out << "\\subsection*{"
+          end
+          text( child )
+          @out << '}'
+        when 'h3', 'h4'
+          @out << "\\subsubsection*{"
+          text( child )
+          @out << '}'
+        when 'ul'
+          @out << "\\begin{itemize}"
+          child.each_child do |item|
+            if item.elem?
+              raise Converter::Error if item.name != 'li'
+              @out << "\\item "
+              text( item )
+            end # ignore text and comments
+          end
+          @out << "\\end{itemize}"
+        when 'div'
+          body( child )
+        when 'blockquote'
+          @out << "\\begin{quote}"
+          text( child )
+          @out << "\\end{quote}"
+        else
+          raise Converter::Error, "unexpected tag <#{child.name}>"
+        end
+      end # ignore text and comments
     end
   end
 
-  PreTextState = State.new
-  class <<PreTextState
+  def text( element )
+    element.each_child do |child|
+      if child.elem?
+        case child.name
+        when 'br'
+          @out << "\\\\"
+        when 'a'
+          # Fix here!
+          case child.attributes['class']
+          when 'recordlink'
+            @out << "\\emph{"
+          when 'url'
+            @out << "\\emph{"
+          when 'songlink'
+            @out << "\\emph{"
+          else
+            # puts child.attributes["class"]
+            @out << "\\emph{"
+          end
+          text( child )
+          @out << "}"
+        when 'em' # ,  'i'
+          @out << "\\emph{"
+          text( child )
+          @out << "}"
+        when 'i'
+          @out << "\\textit{"
+          text( child )
+          @out << "}"
+        when 'b', 'strong'
+          @out << "\\textbf{"
+          text( child )
+          @out << "}"
+        when 'pre'
+          pre( child )
+        when 'tt'
+          @out << "\\texttt{"
+          text( child )
+          @out << "}"
+        # when 'u', 'small', 'big', 'abbr'
+        when 'div'
+          text( child )
+        when 'img'
+          image = child.attributes['src']
+          url = File.join( 'graphics', File.basename( image ) )
+          url = url[0...url.rindex('.')]
+          @out << "\\input{#{url}}"
+        else
+          raise Converter::Error, "unexpected tag <#{child.name}>"
+        end
 
-    CHORDLINE_REGEX =
+      elsif child.text?
+        # using to_html to preserve entities
+        text = child.to_html
+        text.gsub!( ' - ', ' -- ' )
+        text.gsub!( /\.\.\.|\. \. \./, '\\ldots{}' )
+        # text.gsub!( '.~.~.', '\\ldots{}' )
+        text.gsub!( /\b([ACDFG])\\#(?=\W|m|\d)/i, "\\1$\\sharp$" )
+        text.gsub!( /(\b[ABDFG])b(?=\W|m)/, "\\1$\\flat$" )
+
+        @out << text
+      end
+    end
+  end
+
+  def pre( element )
+    classes = element.classes
+
+    if classes.empty?
+      pre_misc( element )
+    else
+      if classes[1]
+        @out << "\\begin{#{classes[1]}}"
+        extra = "\\end{#{classes[1]}}"
+        #classes.delete_at( 1 )
+      end
+
+      case classes[0]
+      when 'verse', 'refrain', 'bridge', 'bridge2', 'bridge3', 'spoken'
+        # @out << "\\begin{#{classes[0]}}\n\\begin{pre}"
+        @out << "\\begin{#{classes[0]}}\\begin{pre}"
+        @out << '\\slshape' if classes[0] == 'spoken'
+        @out << "%\n"
+        pre_text( element )
+        # @out << "\\end{pre}\n\\end{#{classes[0]}}"
+        @out << "\\end{pre}\\end{#{classes[0]}}"
+      when 'tab'
+        pre_tab( element )
+      when 'chords'
+        pre_misc( element )
+      when 'quote'
+        @out << "\\begin{quote}"
+        pre_misc( element )
+        @out << "\\end{quote}"
+      else
+        raise Converter::Error, "unexpected pre CSS class #{classes[0]}"
+      end
+
+      @out << extra
+    end
+  end
+
+  protected
+  
+  def pre_misc( element )
+    @out << "\\begin{alltt}"
+    text = read_text( element )
+    text.gsub!( '[', "{\\relax}[" )
+    text.gsub!( "\t", '~'*8 )
+    @out << text << "\\end{alltt}"
+  end
+
+  CHORDLINE_REGEX =
     %r{ ^                      # Beginning
         [~.]*                  # any number of spaces or dots
         (?:                    # optionally: 
@@ -37,383 +234,95 @@ module States
         (?: [^\w'] | $ )        # don't match "And~watch~...", "Go~'way~..."
                                 # but match "~~~~~Am"
       }x
+  def pre_text( element )
+    text = read_text( element )
 
-    def endElement( converter, name )
-      if name == "pre"
-        $chordlines ||= File.new( "chordlines.txt", 'w' )
-        $nochordlines ||= File.new( "nochordlines.txt", 'w' )
-        
-        converter.buffer.slice!( 0 ) if converter.buffer[0] == ?\n
-        converter.buffer.chomp!
+    text.slice!( 0 ) if text[0] == ?\n
+    text.chomp!
 
-        converter.buffer.gsub!( ' ', '~' )
-        converter.buffer.gsub!( '--','{-}{-}' )
+    text.gsub!( ' ', '~' )
+    text.gsub!( '--','{-}{-}' )
 
-        converter.buffer.each_line do |line|
-          line.chomp!
-          if line.empty?
-            # the \relax after the \\ is to have the \\
-            # not complain about brackets [] on the next line
-            converter.out << "~\\\\ \\relax\n"
-          elsif ( line =~ CHORDLINE_REGEX  or
-                  line =~ %r{^ [~.]* \(? /[a-gB]}x or
-                  line =~ /^\W*$/          or
-                  line =~ /^ ~+ [*0-9x]/x  or
-                  line =~ /[^a].\briff\b/i or
-                  line =~ /-\}\{-\}\{?-/   or
-                  line =~ /n\.c\./
-                )
-            $chordlines.puts( line )
-            converter.out << line << "\\\\*\\relax\n"
-          else
-            $nochordlines.puts( line )
-            converter.out << line << "\\\\ \\relax\n"
+    text.each_line do |line|
+      line.chomp!
+      if line.empty?
+        # the \relax after the \\ is to have the \\
+        # not complain about brackets [] on the next line
+        @out << "~\\\\ \\relax\n"
+      elsif line =~ CHORDLINE_REGEX  or
+            line =~ %r{^ [~.]* \(? /[a-gB]}x or
+            line =~ /^\W*$/          or
+            line =~ /^ ~+ [*0-9x]/x  or
+            line =~ /[^a].\briff\b/i or
+            line =~ /-\}\{-\}\{?-/   or
+            line =~ /n\.c\./
+        @out << line << "\\\\*\\relax\n"
+      else
+        @out << line << "\\\\ \\relax\n"
+      end
+    end
+  end
+
+  def pre_tab( element )
+    @out << "\\begin{pre}%\n"
+
+    tab = read_text( element )
+
+    tab.rstrip!
+    tab.slice!( 0 ) while tab[0] == ?\n
+    tab.gsub!( '[', "{\\relax}[" )
+    tab.gsub!( "\t", '~'*8 )
+    tab.gsub!( '--', '{-}{-}' )
+    tab.gsub!( ' ', '~' )
+
+    tab.gsub!( "\n\n\n", "\n\n" ) # for a_change_is_gonna_come
+
+    # For String#(g)sub(!), \\\\\\ (six backslashes) is the smallest code
+    # that produces \\ as output. See
+    # http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/11037
+    tab.gsub!( "\n\n", "\\\\\\*[\\baselineskip]" )
+    tab.gsub!( "\n",   "\\\\\\*\n" )
+    @out << tab << "\n\\end{pre}"
+  end
+
+  # For the pre_* methods
+  def read_text( element )
+    result = ""
+
+    element.each_child do |child|
+      if child.text?
+        result << child.to_s
+      elsif child.elem?
+        case child.name
+        when 'span'
+          child.classes.each do |c|
+            case c
+            when 'red'
+              result << "\\textcolor{red}{" << read_text( child ) << "}"
+            when 'spoken'
+              result << "\\textsl{"         << read_text( child ) << "}"
+            else
+              # puts "<span> with class #{c} for #{@out.path}"
+              result << "{" << read_text( child ) << "}"
+            end
           end
+        when 'em'
+          result << "\\emph{"   << read_text( child ) << "}"
+        when 'strong'
+          result << "\\textbf{" << read_text( child ) << "}"
         end
-
-        converter.out << "\\end{pre}"
-        converter.buffer = ""
-        converter.endState
-      end
-    end
-
-    def character( converter, data )
-      converter.buffer << data
-    end
-    
-    def to_s
-      'PreTextState'
-    end
-  end
-
-  TabState = State.new
-  class <<TabState
-    
-    def endElement( converter, name )
-      if name == "pre"
-        converter.buffer.rstrip!
-        converter.buffer.slice!( 0 ) while converter.buffer[0] == ?\n
-        converter.buffer.gsub!( '[', "{\\relax}[" )
-        converter.buffer.gsub!( "\t", '~'*8 )
-        converter.buffer.gsub!( '--', '{-}{-}' )
-        converter.buffer.gsub!( ' ', '~' )
-
-        converter.buffer.gsub!( "\n\n\n", "\n\n" ) # for a_change_is_gonna_come
-
-        # For String#(g)sub(!), \\\\\\ (six backslashes) is the smallest code
-        # that produces \\ as output. See
-        # http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/11037
-        converter.buffer.gsub!( "\n\n", "\\\\\\*[\\baselineskip]" )
-        converter.buffer.gsub!( "\n",   "\\\\\\*\n" )
-        converter.out << converter.buffer << "\n" << '\\end{pre}'
-        converter.buffer = ""
-        converter.endState
-      end
-    end
-    
-    def character( converter, data )
-      converter.buffer << data
-    end
-
-    def to_s
-      'TabState'
-    end
-  end
-
-  MiscPreState = State.new
-  class <<MiscPreState
-    def endElement( converter, name )
-      if name == "pre"
-        converter.out << '\\end{alltt}'
-        converter.endState
-      end
-    end
-
-    def character( converter, data )
-      data.gsub!( '[', "{\\relax}[" )
-      data.gsub!( "\t", '~'*8 )
-      converter.out << data
-    end
-
-    def to_s
-      'MiscPreStates'
-    end
-  end
-
-  SongTitleState = State.new
-  class <<SongTitleState
-
-    def endElement( converter, name )
-      if name == "h1"
-        #puts converter.buffer if converter.buffer =~ /\\?[#&~]|\\ss/
-        simple = converter.buffer.downcase.gsub( /\\?[#&~]|\\ss/, '' )
-        converter.title = converter.buffer
-
-        converter.out << converter.buffer.gsub( '!', '\\textexclaim{}' ) \
-                      << '}{' << simple << '}'
-
-        converter.buffer = ""
-        converter.endState
       else
-        raise Converter::Error
+        # write out
       end
     end
 
-    def character( converter, data )
-      converter.buffer << data
-    end
-
-    def to_s
-      'SongTitleState'
-    end
+    result
   end
 
-  RootState = State.new
-  class <<RootState
-    def startElement( converter, name, attr )
-      if name == 'body'
-        converter.newState( BodyState )
-      end
-    end
+  def Converter.preprocess( text )
+    text.gsub!( "\\", "\\textbackslash{}" )
+    text.gsub!( /([~$%_^])/, '\\\\\1{}' )
 
-    def endElement( converter, name )
-      if name == 'html'
-        converter.endState
-      end
-    end
-
-    def to_s
-      'RootState'
-    end
-  end
-
-  module PreHandler
-    def handle_pre( converter, attributes )
-      if attributes[ 'class' ].nil? || attributes[ 'class' ].empty?
-        converter.out << '\\begin{alltt}'
-        converter.newState( MiscPreState )
-      else
-        classes = attributes[ 'class' ].split
-        if classes[1]
-          converter.out << "\\begin{#{classes[1]}}"
-          converter.extra = '\\end{' + classes[1] + '}' + converter.extra
-          classes.delete_at( 1 )
-        end
-
-        case classes[0]
-        when 'verse', 'refrain', 'bridge', 'bridge2', 'bridge3', 'spoken'
-          converter.out << '\\begin{' << classes[0] << '}\\begin{pre}'
-          converter.out << '\\slshape' if classes[0] == 'spoken'
-          converter.out << "%\n"
-          converter.extra = '\\end{' + classes[0] + '}' + converter.extra
-          converter.newState( PreTextState )
-        when 'tab'
-          converter.out << '\\begin{pre}%' << "\n"
-          converter.buffer = ""
-          converter.newState( TabState )
-        when 'chords'
-          converter.out << '\\begin{alltt}'
-          converter.newState( MiscPreState )
-        when 'quote'
-          converter.out << '\\begin{quote}\\begin{alltt}'
-          converter.extra = '\\end{quote}' + converter.extra
-          converter.newState( MiscPreState )
-        else
-          raise RuntimeError, "unexpected pre attribute #{classes[0]}"
-        end
-      end
-    end
-  end
-
-  BodyState = State.new
-  class <<BodyState
-
-    include PreHandler
-
-    def startElement( converter, name, attributes )
-      case name
-      when 'pre'
-        handle_pre( converter, attributes )
-      when 'p'
-        converter.out << "\n\n"
-        converter.newState( TextState )
-      when 'hr'
-        converter.out << "\n\\bobrule\n"
-      when 'h1'
-        if attributes[ 'class' ] == 'songtitle'
-          converter.out << "\\songlbl{"
-          converter.newState( SongTitleState )
-        else
-          converter.out << '\\section*{'
-          converter.newState( TextState )
-        end
-      when 'h2'
-        if attributes[ 'class' ] == 'songversion'
-          converter.out << '\\songversion{'
-        else
-          converter.out << '\\subsection*{'
-        end
-        converter.newState( TextState )
-      when 'h3', 'h4'
-        converter.out << '\\subsubsection*{'
-        converter.newState( TextState )
-      when 'li'
-        converter.out << '\\item '
-        converter.newState( TextState )
-      when 'ul'
-        converter.out << '\\begin{itemize}'
-      when 'div'
-        converter.newState( BodyState )
-      when 'blockquote'
-        converter.out << '\\begin{quote}'
-        converter.newState( TextState )
-      else
-        raise Converter::Error, "unexpected tag <#{name}>"
-      end
-    end
-
-    def endElement( converter, name )
-      case name
-      when 'ul'
-        converter.out << '\\end{itemize}'
-      when 'div'
-        converter.endState
-      when 'body'
-        converter.endState
-      end
-    end
-
-    def character( converter, data )
-      #converter.out << data.gsub( "\n", "%\n" )
-    end
-
-    def to_s
-      'BodyState'
-    end
-  end
-
-  TextState = State.new
-  class <<TextState
-
-    include PreHandler
-
-    def startElement( converter, name, attr )
-      case name
-      when 'br'
-        converter.out << '\\\\'
-      when 'a'
-        case attr["class"]
-        when 'recordlink'
-          converter.out << '\\emph{'
-        when 'url'
-          converter.out << '\\emph{'
-        when 'songlink'
-          converter.out << '\\emph{'
-          #converter.extra = 
-        else
-          # puts attr["class"]
-          converter.out << '\\emph{'
-        end
-      when 'em', 'i'
-        converter.out << '\\emph{'
-      when 'b', 'strong'
-        converter.out << '\\textbf{'
-      when 'pre'
-        handle_pre( converter, attr )
-      when 'tt'
-        converter.out << '\\texttt{'
-      # when 'u', 'small', 'big', 'abbr'
-      when 'div'
-        converter.newState( TextState )
-      when 'img'
-        image = attr[ 'src' ]
-        url = File.join( 'graphics', File.basename( image ) )
-        url = url[0...url.rindex('.')]
-        converter.out << "\\input{#{url}}"
-      else
-        raise Converter::Error, "unexpected tag <#{name}>"
-      end
-    end
-
-    def endElement( converter, name )
-      case name
-      when 'p'
-        converter.out << "\n\n"
-        converter.endState
-      when 'em', 'a', 'strong', 'b', 'tt', 'i'
-        converter.out << '}'
-      when 'li'
-        converter.endState
-      when 'h1', 'h2', 'h3', 'h4'
-        converter.out << '}'
-        converter.endState
-      when 'div'
-        converter.endState
-      when 'blockquote'
-        converter.out << '\\end{quote}'
-        converter.endState
-      end
-    end
-
-    REPLACEMENTS = [
-                    [ ' - ', ' -- ' ],
-                    [ '...', '\\ldots{}' ],
-                    [ '. . .', '\\ldots{}' ],
-                  # [ '.~.~.', '\\ldots{}' ],
-                  #  [ /(^|\W)'((?:[^']|\w'\w)+)'(\W|\Z)/,
-                  #    "\\1`{}\\2'{}\\3" ], # "
-                  # [ /"([^"]+)"/, "``{}\\1''{}" ], # "
-                    [ /(\W[ACDFG])\\#(?=\W|m|\d)/i, "\\1$\\sharp$" ],
-                    [ /(\W[ABDFG])b(?=\W|m)/, "\\1$\\flat$" ]
-                   ]
-    def character( converter, data )
-      REPLACEMENTS.each do |pattern, replacement|
-        data.gsub!( pattern, replacement )
-      end
-      converter.out << data
-    end
-
-    def to_s
-      'TextState'
-    end
-  end
-end
-
-
-class Converter
-
-  attr_accessor :out, :buffer, :extra, :title
-
-  def initialize( *args )
-    super( *args )
-    reset
-  end
-  
-  def reset
-    unless @out.nil?
-      @out.close
-      @out = nil
-    end
-    @states = [States::State.new, States::RootState]
-    @state = @states.last
-    @buffer = ""
-    @extra = ""
-    @title = nil
-  end
-
-  def startElement( name, attr )
-    @state.startElement( self, name, attr )
-  end
-
-  def endElement( name )
-    @state.endElement( self, name )
-  end
-
-  def character( data )
-    @state.character( self, data )
-  end
-  
-  def entities_to_TeX( text )
     text.gsub!( /&\#?\w+;/ ) do |entity|
       case entity[1...-1]
 
@@ -439,32 +348,10 @@ class Converter
       when 'hellip' then '\\ldots{}'
       when 'oacute' then '\\\'o'
       when 'amp'    then '&' # escaped later
-      when 'lt'     then '<'
-      when 'gt'     then '>'
+      when 'lt'     then '\\lt{}'
+      when 'gt'     then '\\gt{}'
 
-#       when 'Oslash' then "\xD8"
-#       when 'quot'   then '"'
-#       when 'rdquo'  then "{''}"
-#       when 'ldquo'  then "{``}"
-#       when 'ndash', '#8211'  then "--"
-#       when 'nbsp'   then '~'
-#       when 'rsquo'  then "{'}"
-#       when 'ntilde' then "\xF1"
-#       when 'uuml'   then "\xFC"
-#       when 'eacute' then "\xE9"
-#       when 'szlig'  then "\xDF"
-#       when 'ouml'   then "\xD6"
-#       when 'mdash'  then "---"
-#       when 'auml'   then "\xE4"
-#       when 'Aring'  then "\xC5"
-#       when 'euml'   then "\xEB"
-#       when 'egrave' then "\xE8"
-#       when 'oacute' then "\xF3"
-#       when 'amp'    then '\\&'
-#       when 'lt'     then '<'
-#       when 'gt'     then '>'
-
-      # rest doesn't occur
+      # rest doesn't occur (as of yet)
 #       when 'acirc' then '\\^a'
 #       when 'agrave' then '\\`a'
 #       when 'aacute' then '\\\'a'
@@ -521,59 +408,8 @@ class Converter
         Seal::err << "Unknown entity #{entity} ignored for #{@out.path}\n"
       end
     end
-  end
 
-  def newState( state )
-    @states.push( state )
-    @state = state
-  end
-
-  def endState
-    self.out << extra
-    @extra = ""
-    @states.pop
-    @state = @states.last
-  end
-
-  def convert( filename )
-    @out << "%%% Converted by seal on #{Time.now}\n"
-    begin
-      # Replace backslash (\) now, so we need not touch backslashes anymore.
-      doc = Hpricot.parse( File.read( filename ).gsub( "\\", "\\textbackslash{}" ) )
-      traverse( doc )
-    rescue Hpricot::Error => e
-      puts e
-      exit 1
-    end
-  end
-
-  def finished?
-    @states.length == 1
-  end
-
-  private
-
-  def traverse( elem )
-    elem.each_child do |child|
-      if child.elem?
-        startElement( child.name, child.attributes )
-        traverse( child )
-        endElement( child.name )
-      elsif child.text?
-        # using to_html to preserve entities
-        text = child.to_html
-
-        text.gsub!( /([~$%_^])/, '\\\\\1{}' )
-        entities_to_TeX( text )
-        text.gsub!( /([&#])/,    '\\\\\1' )
-
-        character( text )
-      elsif child.xmldecl? or child.doctype? or child.comment?
-      else
-        puts "Unexpacted element type: #{child.class}"
-        #exit 1
-      end
-    end
+    text.gsub!( /([&#])/,    '\\\\\1' )
   end
 
 end

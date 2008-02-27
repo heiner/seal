@@ -8,7 +8,7 @@ rescue LoadError
   exit( 1 )
 end
 
-require 'src/pluckhpricot'
+require 'src/converter'
 require 'src/albumtitles'
 
 
