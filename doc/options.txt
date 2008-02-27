@@ -8,4 +8,4 @@ that determine certain aspects of the output. Right now these are
 
 For instance, you can type
   ./seal-convert -o openleft /usr/local/doc/dylanchords/
-to have each songs started on a left-hand side.
+to have each songs starting on a left-hand side.
