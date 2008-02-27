@@ -107,7 +107,7 @@ class Converter
           when 'songlink'
             @out << "\\emph{"
           else
-            # puts child.attributes["class"]
+            # p child.classes
             @out << "\\emph{"
           end
           text( child )
@@ -165,18 +165,15 @@ class Converter
       if classes[1]
         @out << "\\begin{#{classes[1]}}"
         extra = "\\end{#{classes[1]}}"
-        #classes.delete_at( 1 )
       end
 
       case classes[0]
       when 'verse', 'refrain', 'bridge', 'bridge2', 'bridge3', 'spoken'
-        # @out << "\\begin{#{classes[0]}}\n\\begin{pre}"
-        @out << "\\begin{#{classes[0]}}\\begin{pre}"
+        @out << "\\begin{#{classes[0]}}\n\\begin{pre}"
         @out << '\\slshape' if classes[0] == 'spoken'
         @out << "%\n"
         pre_text( element )
-        # @out << "\\end{pre}\n\\end{#{classes[0]}}"
-        @out << "\\end{pre}\\end{#{classes[0]}}"
+        @out << "\\end{pre}\n\\end{#{classes[0]}}"
       when 'tab'
         pre_tab( element )
       when 'chords'
@@ -292,7 +289,6 @@ class Converter
             when 'spoken'
               result << "\\textsl{"         << read_text( child ) << "}"
             else
-              # puts "<span> with class #{c} for #{@out.path}"
               result << "{" << read_text( child ) << "}"
             end
           end

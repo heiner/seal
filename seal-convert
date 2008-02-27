@@ -79,9 +79,11 @@ class Seal
 
     generate_toc( contents )
 
-    Seal::out << "\n\n" << "Congratulations -- conversion is done! Run seal-tex now." << "\n"
-    Seal::out << "(Now you can seal up the book and not write anymore.)" << "\n\n"
-    @stats.print
+     unless @options[ :quiet ]
+       Seal::out << "\n\n" << "Congratulations -- conversion is done! Run seal-tex now." << "\n"
+       Seal::out << "(Now you can seal up the book and not write anymore.)" << "\n\n"
+       @stats.print
+     end
   end
 
   def generate_toc( contents )

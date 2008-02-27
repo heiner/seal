@@ -37,7 +37,7 @@ class AlbumConverter
       inputs = []
       outtake = false
 
-      Seal::out.printf( "\n%35s: ", album_name )
+      Seal::out.printf( "\n%35s: ", album_name ) unless @options[ :quiet ]
       songs.each do |song|
         if song.nil?
           progress( " " )
