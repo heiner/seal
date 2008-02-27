@@ -213,7 +213,8 @@
     \item[]}
    {\end{list}}
 
-\newenvironment{refrain}{\begin{quote}}{\end{quote}}
+\newenvironment{refrain}{\vspace{-.5\baselineskip}\begin{quote}}%
+  {\end{quote}}
 \newenvironment{bridge}{\begin{quote}}{\end{quote}}
 \newenvironment{bridge2}{\begin{quote}\begin{quote}}%
   {\end{quote}\end{quote}}
@@ -287,7 +288,7 @@
    \setlength{\baselineskip}{\bigleading}%
    \setlength{\parindent}{\bigparindent}%
    \setlength{\parskip}{0ex}%
-   \changetext{0pt}{-5em}{5em}{}{}%
+   \changetext{0pt}{-10em}{7em}{3em}{}%
   }%
 
   {\setlength{\baselineskip}{\stdleading}%
