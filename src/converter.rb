@@ -1,14 +1,4 @@
 
-begin
-  require 'hpricot'
-rescue LoadError
-  require 'rubygems' and retry
-
-  puts "You need the Hpricot library to run seal-convert."
-  exit( 1 )
-end
-
-
 class Converter
 
   class Error < StandardError
@@ -95,7 +85,7 @@ class Converter
           text( child )
           @out << "\\end{quote}"
         else
-          raise Converter::Error, "unexpected tag <#{child.name}>"
+          raise Converter::Error, "unknown tag <#{child.name}>"
         end
       end # ignore text and comments
     end
@@ -149,7 +139,7 @@ class Converter
           url = url[0...url.rindex('.')]
           @out << "\\input{#{url}}"
         else
-          raise Converter::Error, "unexpected tag <#{child.name}>"
+          raise Converter::Error, "unknown tag <#{child.name}>"
         end
 
       elsif child.text?
@@ -196,7 +186,7 @@ class Converter
         pre_misc( element )
         @out << "\\end{quote}"
       else
-        raise Converter::Error, "unexpected pre CSS class #{classes[0]}"
+        raise Converter::Error, "unknown pre CSS class #{classes[0]}"
       end
 
       @out << extra
