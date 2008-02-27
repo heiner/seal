@@ -1,67 +1,16 @@
 
-require 'src/converter'
+begin
+  require 'hpricot'
+rescue LoadError
+  require 'rubygems' and retry
+
+  puts "You need the Hpricot library to run seal-convert."
+  exit( 1 )
+end
+
+require 'src/pluckhpricot'
 require 'src/albumtitles'
 
-module States
-  AlbumIndexState = State.new
-  class <<AlbumIndexState
-
-    def startElement( converter, name, attributes )
-      if name == 'title'
-        converter.newState( AlbumTitleState )
-      end
-      if name == 'div' and attributes[ 'id' ] == 'intro'
-        converter.out << "\\newpage\\begin{articlelayout}\n\\vspace*\\fill\n"
-        converter.newState( AlbumIntroState )
-      end
-    end
-
-    def to_s
-      'AlbumIndexState'
-    end
-  end
-
-  AlbumTitleState = State.new
-  class <<AlbumTitleState
-
-    def endElement( converter, name )
-      if name == "title"
-        converter.title = converter.buffer
-        converter.buffer = ""
-        converter.endState
-      else
-        raise Converter::Error
-      end
-    end
-
-    def character( converter, data )
-      converter.buffer << data
-    end
-
-    def to_s
-      'AlbumTitleState'
-    end
-  end
-
-
-
-  AlbumIntroState = BodyState.clone
-  class <<AlbumIntroState
-
-    def endElement( converter, name )
-      if name == 'div'
-        converter.out << "\n\\end{articlelayout}\n"
-        converter.endState
-      else
-        super
-      end
-    end
-
-    def to_s
-      'AlbumIndexState'
-    end
-  end
-end
 
 class AlbumConverter
 
@@ -74,11 +23,9 @@ class AlbumConverter
     @title  = ""
     @converter = Converter.new
     @converted_titles = {}
-    @progress = Seal::out unless options[ :quiet ]
   end
 
   def convert( album_name, src, dest, songs )
-
     @number = @number.succ
     album_title, ext = album_name.split( '#' )
     ext = '_' + ext if not ext.nil?
@@ -123,18 +70,22 @@ class AlbumConverter
       end
 
       unless @converted_titles.has_key?( basename )
-        @converter.out = File.new( File.join( dest, basename + '.tex' ), 'w' )
-        @converter.convert( File.join( src, song ) )
-        @converted_titles[ basename ] = @converter.title
-        @converter.reset
+        ifile = File.new( File.join( src, song ) )
+        ofile = File.new( File.join( dest, basename + '.tex' ), 'w' )
+        @converter.convert( ifile, ofile )
+        ofile.close
+        ifile.close
+        
+        @converted_titles[basename] = @converter.song_title
+
         @stats.songs += 1
         progress( '.' )
       else
         progress( 'r' )
       end
 
-      ttl = @converted_titles[ basename ]
-      ref = ttl.downcase.gsub( /\\?[#&~]|\\ss/,'' )
+      ttl = @converted_titles[basename]
+      ref = ttl.downcase.gsub( /\\?[#&~]|\\ss/, '' )
 
       index << prefix << '\\pageref{song:' << ref << '} & \\textsc{' \
             << ttl.downcase << '} \\tabularnewline' << "\n"
@@ -143,24 +94,35 @@ class AlbumConverter
     index << "\\end{ctabular}\n\\end{flushright}\n\n"
 
     # Convert the intro (if any)
-    @converter.out = index
-    @converter.newState( States::AlbumIndexState )
-    @converter.convert( File.join( src, 'index.htm' ) )
-    @converter.out = nil
-    @converter.reset
+    data = File.read( File.join( src, 'index.htm' ) )
+    Converter.preprocess( data )
+    doc = Hpricot( data )
 
+    # title = doc.at( "html/head/title" ).inner_html
+
+    # find first <div> tag with attribute "id" value "intro"
+    element = doc.at( "//div[@id='intro']" )
+    if !element.nil?
+      index << "\\newpage\\begin{articlelayout}\n\\vspace*\\fill\n"
+      @converter.redirect( index ) do |c|
+        c.body( element )
+      end
+      index << "\n\\end{articlelayout}\n"
+    end
+    
     index << "\\clearpage\n\n"
     inputs.each do |song|
       index << '\\input{' << song << "}\n"
     end
     index.close
+
     @stats.albums += 1
   end
 
   def progress( char )
     unless @options[ :quiet ]
-      @progress.print( char )
-      @progress.flush
+      Seal::out.print( char )
+      Seal::out.flush
     end
   end
 end

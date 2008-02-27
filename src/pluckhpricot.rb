@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 
 begin
   require 'hpricot'
@@ -11,6 +10,9 @@ end
 
 
 class Converter
+
+  class Error < StandardError
+  end
 
   attr_reader :song_title
   
@@ -26,16 +28,18 @@ class Converter
     @song_title = nil
 
     # Yes, we do that now!
-    data.gsub( "\\", "\\textbackslash{}" )
-    data.gsub!( /([~$%_^])/, '\\\\\1{}' )
-    entities_to_TeX( data )
-    data.gsub!( /([&#])/,    '\\\\\1' )
+    Converter.preprocess( data )
 
     doc = Hpricot( data )
     body( doc.at( "body" ) )
   end
 
-  protected
+  def redirect( out_stream )
+    out = @out
+    @out = out_stream
+    yield self
+    @out = out
+  end
 
   def body( element )
     element.each_child do |child|
@@ -46,15 +50,17 @@ class Converter
         when 'p'
           @out << "\n\n"
           text( child )
+          @out << "\n\n"
         when 'hr'
           @out << "\n\\bobrule\n"
         when 'h1'
           if child.attributes[ 'class' ] == 'songtitle'
             # We assume this <h1> contains no further elements
             child.each_child { |c| raise Converter::Error if c.elem? }
-            @song_title = child.inner_html.gsub( '!', "\\textexclaim{}" )
+            @song_title = child.inner_text
             simple = @song_title.downcase.gsub( /\\?[#&~]|\\ss/, '' )
-            @out << "\\songlbl{" << @song_title << "}{" << simple << "}"
+            @out << "\\songlbl{" << @song_title.gsub( '!', "\\textexclaim{}" ) \
+                                 << "}{" << simple << "}"
           else
             @out << "\\section*{"
             text( child )
@@ -77,8 +83,8 @@ class Converter
           child.each_child do |item|
             if item.elem?
               raise Converter::Error if item.name != 'li'
-              @out << "\\item"
-              text( child )
+              @out << "\\item "
+              text( item )
             end # ignore text and comments
           end
           @out << "\\end{itemize}"
@@ -161,12 +167,11 @@ class Converter
   end
 
   def pre( element )
-    css = element.attributes['class']
+    classes = element.classes
 
-    if css.nil? || css.empty?
+    if classes.empty?
       pre_misc( element )
     else
-      classes = css.split
       if classes[1]
         @out << "\\begin{#{classes[1]}}"
         extra = "\\end{#{classes[1]}}"
@@ -175,17 +180,19 @@ class Converter
 
       case classes[0]
       when 'verse', 'refrain', 'bridge', 'bridge2', 'bridge3', 'spoken'
-        @out << "\\begin{#{classes[0]}}\n\\begin{pre}"
+        # @out << "\\begin{#{classes[0]}}\n\\begin{pre}"
+        @out << "\\begin{#{classes[0]}}\\begin{pre}"
         @out << '\\slshape' if classes[0] == 'spoken'
         @out << "%\n"
         pre_text( element )
-        @out << "\\end{pre}\n\\end{#{classes[0]}"
+        # @out << "\\end{pre}\n\\end{#{classes[0]}}"
+        @out << "\\end{pre}\\end{#{classes[0]}}"
       when 'tab'
         pre_tab( element )
       when 'chords'
         pre_misc( element )
       when 'quote'
-        @out << "\\begin{quote}
+        @out << "\\begin{quote}"
         pre_misc( element )
         @out << "\\end{quote}"
       else
@@ -196,22 +203,14 @@ class Converter
     end
   end
 
+  protected
+  
   def pre_misc( element )
     @out << "\\begin{alltt}"
-    # We assume this element contains only text
-    element.each_child do |child|
-      if child.text?
-        text = child.to_html
-        text.gsub!( '[', "{\\relax}[" )
-        text.gsub!( "\t", '~'*8 )
-        @out << text
-      elsif child.elem?
-        raise Converter::Error, "`misc' <pre> tag with child tags"
-      else
-        # write out
-      end
-    end
-    @out << "\\end{alltt}"
+    text = read_text( element )
+    text.gsub!( '[', "{\\relax}[" )
+    text.gsub!( "\t", '~'*8 )
+    @out << text << "\\end{alltt}"
   end
 
   CHORDLINE_REGEX =
@@ -236,17 +235,7 @@ class Converter
                                 # but match "~~~~~Am"
       }x
   def pre_text( element )
-    text = ""
-    # We assume this element contains only text
-    element.each_child do |child|
-      if child.text?
-        text += child.to_html
-      elsif child.elem?
-        raise Converter::Error, "`text' <pre> tag with child tags"
-      else
-        # write out
-      end
-    end
+    text = read_text( element )
 
     text.slice!( 0 ) if text[0] == ?\n
     text.chomp!
@@ -277,36 +266,63 @@ class Converter
   def pre_tab( element )
     @out << "\\begin{pre}%\n"
 
-    tab = ""
-    # We assume this element contains only text
+    tab = read_text( element )
+
+    tab.rstrip!
+    tab.slice!( 0 ) while tab[0] == ?\n
+    tab.gsub!( '[', "{\\relax}[" )
+    tab.gsub!( "\t", '~'*8 )
+    tab.gsub!( '--', '{-}{-}' )
+    tab.gsub!( ' ', '~' )
+
+    tab.gsub!( "\n\n\n", "\n\n" ) # for a_change_is_gonna_come
+
+    # For String#(g)sub(!), \\\\\\ (six backslashes) is the smallest code
+    # that produces \\ as output. See
+    # http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/11037
+    tab.gsub!( "\n\n", "\\\\\\*[\\baselineskip]" )
+    tab.gsub!( "\n",   "\\\\\\*\n" )
+    @out << tab << "\n\\end{pre}"
+  end
+
+  # For the pre_* methods
+  def read_text( element )
+    result = ""
+
     element.each_child do |child|
       if child.text?
-        tab += child.to_html
+        result << child.to_s
       elsif child.elem?
-        raise Converter::Error, "`tab' <pre> tag with child tags"
+        case child.name
+        when 'span'
+          child.classes.each do |c|
+            case c
+            when 'red'
+              result << "\\textcolor{red}{" << read_text( child ) << "}"
+            when 'spoken'
+              result << "\\textsl{"         << read_text( child ) << "}"
+            else
+              # puts "<span> with class #{c} for #{@out.path}"
+              result << "{" << read_text( child ) << "}"
+            end
+          end
+        when 'em'
+          result << "\\emph{"   << read_text( child ) << "}"
+        when 'strong'
+          result << "\\textbf{" << read_text( child ) << "}"
+        end
       else
         # write out
       end
     end
 
-    text.rstrip!
-    text.slice!( 0 ) while text[0] == ?\n
-    text.gsub!( '[', "{\\relax}[" )
-    text.gsub!( "\t", '~'*8 )
-    text.gsub!( '--', '{-}{-}' )
-    text.gsub!( ' ', '~' )
-
-    text.gsub!( "\n\n\n", "\n\n" ) # for a_change_is_gonna_come
-
-    # For String#(g)sub(!), \\\\\\ (six backslashes) is the smallest code
-    # that produces \\ as output. See
-    # http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/11037
-    text.gsub!( "\n\n", "\\\\\\*[\\baselineskip]" )
-    text.gsub!( "\n",   "\\\\\\*\n" )
-    @out << text << "\n\\end{pre}"
+    result
   end
 
-  def entities_to_TeX( text )
+  def Converter.preprocess( text )
+    text.gsub!( "\\", "\\textbackslash{}" )
+    text.gsub!( /([~$%_^])/, '\\\\\1{}' )
+
     text.gsub!( /&\#?\w+;/ ) do |entity|
       case entity[1...-1]
 
@@ -331,9 +347,9 @@ class Converter
       when 'egrave' then '\\`e'
       when 'hellip' then '\\ldots{}'
       when 'oacute' then '\\\'o'
-      when 'amp'    then '\\&'
-      when 'lt'     then '<'
-      when 'gt'     then '>'
+      when 'amp'    then '&' # escaped later
+      when 'lt'     then '\\lt{}'
+      when 'gt'     then '\\gt{}'
 
       # rest doesn't occur (as of yet)
 #       when 'acirc' then '\\^a'
@@ -392,6 +408,8 @@ class Converter
         Seal::err << "Unknown entity #{entity} ignored for #{@out.path}\n"
       end
     end
+
+    text.gsub!( /([&#])/,    '\\\\\1' )
   end
 
 end
