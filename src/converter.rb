@@ -1,4 +1,15 @@
 
+begin
+  require 'hpricot'
+rescue LoadError
+  require 'rubygems' and retry
+
+  puts "You need the Hpricot library to run seal-convert."
+  puts "Get it at http://code.whytheluckystiff.net/hpricot/"
+  exit( 1 )
+end
+
+
 class Converter
 
   class Error < StandardError
@@ -6,12 +17,16 @@ class Converter
 
   attr_reader :song_title
   
-  def initialize
+  def initialize( seal )
+    @seal = seal
+    
     @out = nil
     @song_title = nil
   end
 
   def convert( in_stream, out_stream )
+    @seal.current_input = in_stream.path
+    
     data = in_stream.read
     @out = out_stream
 
@@ -21,14 +36,12 @@ class Converter
     Converter.preprocess( data )
 
     doc = Hpricot( data )
-    body( doc.at( "body" ) )
-  end
 
-  def redirect( out_stream )
-    out = @out
-    @out = out_stream
-    yield self
-    @out = out
+    if not block_given?
+      body( doc.at( "body" ) )
+    else
+      yield doc
+    end
   end
 
   def body( element )
@@ -98,20 +111,30 @@ class Converter
         when 'br'
           @out << "\\\\"
         when 'a'
-          # Fix here!
           case child.attributes['class']
+          # We assume <a> tags have no child elements
           when 'recordlink'
-            @out << "\\emph{"
+            record = child.inner_html
+            #simple = record.upcase.gsub( "\\&", '' )
+            #@out << "\\textit{#{record}} (p \\pageref{album:#{simple}})"
+            @out << "\\textit{#{record}}"
+          when 'songlink'
+            song = child.inner_html
+            simple = song.downcase.gsub( /\\?[#&~]|\\ss/, '' )
+            @out << "\\textit{#{song}}"
           when 'url'
             @out << "\\emph{"
-          when 'songlink'
-            @out << "\\emph{"
+            text( child )
+            @out << "}"
           else
-            # p child.classes
+            #if child.classes.empty?
+            #  href = child.attributes['href'] || ""
+            #  puts "<a> without CSS, href=#{href.gsub('\\_{}', '_')} for #{@out.path}"
+            #end
             @out << "\\emph{"
+            text( child )
+            @out << "}"
           end
-          text( child )
-          @out << "}"
         when 'em' # ,  'i'
           @out << "\\emph{"
           text( child )

@@ -259,6 +259,8 @@ class AlbumConverter
       raise
     end
 
+    simple = @title.upcase.gsub( "\\&", '' )
+
     return <<EOS
 \\def\\thesong{}
 \\cleardoublepage
@@ -267,6 +269,7 @@ class AlbumConverter
 \\phantomsection
 \\pdfbookmark{#{@number} #{@title}}{album#{@number}}
 \\label{album:#{@number}}
+\\label{album:#{simple}}
 
 \\begin{flushright}
 \\scalebox{6}{\\Huge\\scshape #{@number.to_s.downcase}}

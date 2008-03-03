@@ -1,28 +1,18 @@
 
-begin
-  require 'hpricot'
-rescue LoadError
-  require 'rubygems' and retry
-
-  puts "You need the Hpricot library to run seal-convert."
-  puts "Get it at http://code.whytheluckystiff.net/hpricot/"
-  exit( 1 )
-end
 
 require 'src/converter'
 require 'src/albumtitles'
-
 
 class AlbumConverter
 
   attr_reader :number, :title
 
-  def initialize( options, stats )
-    @options = options
-    @stats = stats
+  def initialize( seal )
+    @seal = seal
+
     @number = 0
     @title  = ""
-    @converter = Converter.new
+    @converter = Converter.new( seal )
     @converted_titles = {}
   end
 
@@ -37,10 +27,10 @@ class AlbumConverter
       inputs = []
       outtake = false
 
-      Seal::out.printf( "\n%35s: ", album_name ) unless @options[ :quiet ]
+      @seal.out.printf( "\n%35s: ", album_name ) unless @seal.options[ :quiet ]
       songs.each do |song|
         if song.nil?
-          progress( " " )
+          @seal.progress( " " )
           index_file << "\\end{ctabular}\n\\begin{ctabular}[r]{r>{\\raggedright}p{20em}}"
           next
         end
@@ -66,7 +56,7 @@ class AlbumConverter
         inputs << File.join( File.basename( dest ), basename ) if input
         
         if @converted_titles.has_key?( basename )
-          progress( 'r' )
+          @seal.progress( 'r' )
         else
           open( File.join( src, song ) ) do |ifile|
             open( File.join( dest, basename + '.tex' ), 'w' ) do |ofile|
@@ -76,8 +66,8 @@ class AlbumConverter
         
           @converted_titles[basename] = @converter.song_title
 
-          @stats.songs += 1
-          progress( '.' )
+          @seal.stats.songs += 1
+          @seal.progress( '.' )
         end
 
         title = @converted_titles[basename].downcase # or not downcase?
@@ -89,20 +79,18 @@ class AlbumConverter
       index_file << "\\end{ctabular}\n\\end{flushright}\n\n"
 
       # Convert the intro (if any)
-      data = File.read( File.join( src, 'index.htm' ) )
-      Converter.preprocess( data )
-      doc = Hpricot( data )
+      open ( File.join( src, 'index.htm' ) ) do |ifile|
+        @converter.convert( ifile, index_file ) do |doc|
+          # title = doc.at( "html/head/title" ).inner_html
 
-      # title = doc.at( "html/head/title" ).inner_html
-
-      # find first <div> tag with attribute "id" value "intro"
-      element = doc.at( "//div[@id='intro']" )
-      if !element.nil?
-        index_file << "\\newpage\\begin{articlelayout}\n\\vspace*\\fill\n"
-        @converter.redirect( index_file ) do |c|
-          c.body( element )
+          # find first <div> tag with attribute "id" value "intro"
+          element = doc.at( "//div[@id='intro']" )
+          if !element.nil?
+            index_file << "\\newpage\\begin{articlelayout}\n\\vspace*\\fill\n"
+            @converter.body( element )
+            index_file << "\n\\end{articlelayout}\n"
+          end
         end
-        index_file << "\n\\end{articlelayout}\n"
       end
     
       index_file << "\\clearpage\n\n"
@@ -111,13 +99,7 @@ class AlbumConverter
       end
     end
 
-    @stats.albums += 1
+    @seal.stats.albums += 1
   end
 
-  def progress( char )
-    unless @options[ :quiet ]
-      Seal::out.print( char )
-      Seal::out.flush
-    end
-  end
 end

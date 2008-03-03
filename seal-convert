@@ -25,28 +25,22 @@ class Seal
     end
   end
 
-  def Seal::out
-    $stdout
-  end
-
-  def Seal::err
-    $stderr
-  end
-
-  def Seal::exit( state=0 )
-    Kernel::exit( state )
-  end
+  attr_reader   :options, :stats, :out, :err
+  attr_accessor :current_input
 
   def initialize( options )
     @options = options
     @data   = YAML.load_file( File::join( RESIDENCE, 'data', 'songs.yaml' ) )
     @albums = YAML.load_file( File::join( RESIDENCE, 'data', 'albums.yaml' ) )
     @stats = Stats.new
-    @albumconverter = AlbumConverter.new( @options, @stats )
+    @albumconverter = AlbumConverter.new( self )
+
+    @out = $stdout
+    @err = $stderr
   end
 
   def convert
-    self.setup
+    setup
 
     index = File.new( File.join( @options[ :destination ], 'index.tex' ), 'w' )
     contents = []
@@ -80,15 +74,17 @@ class Seal
     generate_toc( contents )
 
      unless @options[ :quiet ]
-       Seal::out << "\n\n" << "Congratulations -- conversion is done! Run seal-tex now." << "\n"
-       Seal::out << "(Now you can seal up the book and not write anymore.)" << "\n\n"
+       @out << "\n\n" << "Congratulations -- conversion is done! Run seal-tex now." << "\n"
+       @out << "(Now you can seal up the book and not write anymore.)" << "\n\n"
        @stats.print
      end
   end
 
+  private
+
   def generate_toc( contents )
     toc = File::join( @options[:destination], 'contents.tex' )
-    File::open( toc, "w" ) do |toc|
+    open( toc, "w" ) do |toc|
       toc << <<EOS
 \\thispagestyle{empty}
 \\vspace*\\fill
@@ -175,7 +171,7 @@ EOS
     end
 
     about = File::join( dest, 'about.tex' )
-    File::open( about, "w" ) do |about|
+    open( about, "w" ) do |about|
       about << <<EOS
 \\thispagestyle{empty}
 \\vspace*\\fill
@@ -190,7 +186,7 @@ EOS
       @options[ :config ] = "\\openany"
     end
     return unless @options[ :config ].respond_to?( :each )
-    File.open( File.join( dest, 'config.tex' ), "w" ) do |config|
+    open( File.join( dest, 'config.tex' ), "w" ) do |config|
       @options[ :config ].each do |option|
         config << option << "\n"
       end
@@ -212,6 +208,8 @@ EOS
     end
   end
 
+  public
+
   def ask( promt, default = 'n' )
     opts = { 'y'=>' [Y/n] ', 'n'=>' [y/N] ' }
     print promt, opts[ default.downcase ]
@@ -222,6 +220,17 @@ EOS
       $stdin.getc
     end
     'y' == char.chr.downcase.sub( "\n", default )
+  end
+
+  def exit( state=0 )
+    Kernel::exit( state )
+  end
+
+  def progress( char )
+    unless @options[ :quiet ]
+      @out.print( char )
+      @out.flush
+    end
   end
 
 end
