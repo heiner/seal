@@ -33,7 +33,10 @@ class Converter
     @song_title = nil
 
     # Yes, we do that now!
-    Converter.preprocess( data )
+    data.gsub!( "\\", "\\textbackslash{}" )
+    data.gsub!( /([~$%_^])/, '\\\\\1{}' )
+    Converter.entities_to_TeX( data )
+    data.gsub!( /([&#])/, '\\\\\1' )
 
     doc = Hpricot( data )
 
@@ -100,7 +103,12 @@ class Converter
         else
           raise Converter::Error, "unknown tag <#{child.name}>"
         end
-      end # ignore text and comments
+        #elsif child.text?
+        #  text = child.to_html
+        #  if text =~ /\S/
+        #    puts "Text in <body> tag in #{@seal.current_input}: #{text.dump}"
+        #  end
+      end # ignore comments
     end
   end
 
@@ -328,10 +336,7 @@ class Converter
     result
   end
 
-  def Converter.preprocess( text )
-    text.gsub!( "\\", "\\textbackslash{}" )
-    text.gsub!( /([~$%_^])/, '\\\\\1{}' )
-
+  def Converter.entities_to_TeX( text )
     text.gsub!( /&\#?\w+;/ ) do |entity|
       case entity[1...-1]
 
@@ -417,8 +422,31 @@ class Converter
         @seal.err << "Unknown entity #{entity} in #{@seal.current_input}. Ignored.\n"
       end
     end
-
-    text.gsub!( /([&#])/, '\\\\\1' )
   end
 
+end
+
+
+if $0 == __FILE__
+  require 'test/unit'
+
+  class Converter::Tests < Test::Unit::TestCase
+    require 'ostruct'
+    require 'stringio'
+
+    def setup
+      @seal = OpenStruct.new
+      @converter = Converter.new( @seal )
+    end
+
+    def test_simple_html
+      istream = StringIO.new( "<html><body><p>Test #1</p></body></html>" )
+
+      StringIO.open do |ostream|
+        @converter.convert( istream, ostream )
+        assert_equal( "\n\nTest \\#1\n\n", ostream.string )
+      end
+    end
+
+  end
 end
