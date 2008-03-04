@@ -360,7 +360,7 @@ class Converter
       when 'lt'     then '\\lt{}'
       when 'gt'     then '\\gt{}'
 
-      # rest doesn't occur (as of yet)
+      # rest doesn't occur (yet)
 #       when 'acirc' then '\\^a'
 #       when 'agrave' then '\\`a'
 #       when 'aacute' then '\\\'a'
@@ -414,11 +414,11 @@ class Converter
 #       when 'ccedil' then '{\\c c}'
 #       when 'Ccedil' then '{\\c C}'
       else
-        Seal::err << "Unknown entity #{entity} ignored for #{@out.path}\n"
+        @seal.err << "Unknown entity #{entity} in #{@seal.current_input}. Ignored.\n"
       end
     end
 
-    text.gsub!( /([&#])/,    '\\\\\1' )
+    text.gsub!( /([&#])/, '\\\\\1' )
   end
 
 end

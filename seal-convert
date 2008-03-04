@@ -42,42 +42,44 @@ class Seal
   def convert
     setup
 
-    index = File.new( File.join( @options[ :destination ], 'index.tex' ), 'w' )
     contents = []
-    @albums.each do |album|
-      if album.nil?
-        contents << [ nil, nil ]
-        next
-      end
+    open( File.join( @options[ :destination ], 'index.tex' ), 'w' ) do |index|
+      @albums.each do |album|
+        if album.nil?
+          contents << [ nil, nil ]
+          next
+        end
       
-      songs = @data[ album ]
-      next if songs.empty?
+        songs = @data[ album ]
+        next if songs.empty?
       
-      dir, ext = album.split( "#" )
-      ext = '_' + ext if not ext.nil?
+        dir, ext = album.split( "#" )
+        ext = '_' + ext if not ext.nil?
 
-      source = File::join( @options[ :source ], dir )
-      destination = File::join( @options[ :destination ], dir )
+        source = File::join( @options[ :source ], dir )
+        destination = File::join( @options[ :destination ], dir )
 
-      begin
-        @albumconverter.convert( album, source, destination, songs )
-      rescue Errno::ENOENT => e
-        Seal::err << e.to_s << "\n" << "Please check your data/songs.yaml and data/albums.yaml files\n"
-        Seal::exit( 3 )
+        begin
+          @albumconverter.convert( album, source, destination, songs )
+        rescue Errno::ENOENT => e
+          @err << e.to_s << "\n" << "Please check your data/songs.yaml and data/albums.yaml files\n"
+          exit( 3 )
+        end
+        index << "\\input{" << File::join( dir, "index#{ext}.tex" ) << "}\n"
+        contents << [ @albumconverter.number, @albumconverter.title ]
       end
-      index << "\\input{" << File::join( dir, "index#{ext}.tex" ) << "}\n"
-      contents << [ @albumconverter.number, @albumconverter.title ]
     end
-
-    index.close
 
     generate_toc( contents )
 
-     unless @options[ :quiet ]
-       @out << "\n\n" << "Congratulations -- conversion is done! Run seal-tex now." << "\n"
-       @out << "(Now you can seal up the book and not write anymore.)" << "\n\n"
-       @stats.print
-     end
+    unless @options[ :quiet ]
+      @out << "\n\n" << <<EOS
+Congratulations -- conversion is done! Run seal-tex now.
+(Now you can seal up the book and not write anymore.)
+
+EOS
+      @stats.print
+    end
   end
 
   private
@@ -149,8 +151,8 @@ EOS
       if @options[ :force ] or ask( "Directory `#{dest}' exists. Overwrite?" )
         rm_rf( Dir::glob( File::join( dest, "*[^~]" ) ) )
       else
-        Seal::err << "Abort.\n"
-        Seal::exit( 2 )
+        @err << "Abort.\n"
+        exit( 2 )
       end
     else
       mkdir( dest )
@@ -185,7 +187,9 @@ EOS
     if @options[ :config ].nil? or @options[ :config ].empty?
       @options[ :config ] = "\\openany"
     end
+    
     return unless @options[ :config ].respond_to?( :each )
+    
     open( File.join( dest, 'config.tex' ), "w" ) do |config|
       @options[ :config ].each do |option|
         config << option << "\n"
@@ -267,8 +271,8 @@ EOS
         when 'openright', 'openleft', 'openany'
           options[ :config ] << "\\" + option
         else
-          Seal::err << "Unknown configuration option: `#{option}'\n"
-          Seal::exit( 4 )
+          $stderr.puts "Unknown configuration option: `#{option}'"
+          exit( 4 )
         end
       end
     end
