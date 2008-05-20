@@ -2,7 +2,10 @@
 begin
   require 'hpricot'
 rescue LoadError
-  require 'rubygems' and retry
+  begin
+    require 'rubygems' and retry
+  rescue LoadError
+  end
 
   puts "You need the Hpricot library to run seal-convert."
   puts "Get it at http://code.whytheluckystiff.net/hpricot/"
@@ -35,7 +38,7 @@ class Converter
     # Yes, we do that now!
     data.gsub!( "\\", "\\textbackslash{}" )
     data.gsub!( /([~$%_^])/, '\\\\\1{}' )
-    Converter.entities_to_TeX( data )
+    entities_to_TeX( data )
     data.gsub!( /([&#])/, '\\\\\1' )
 
     doc = Hpricot( data )
@@ -336,7 +339,7 @@ class Converter
     result
   end
 
-  def Converter.entities_to_TeX( text )
+  def entities_to_TeX( text )
     text.gsub!( /&\#?\w+;/ ) do |entity|
       case entity[1...-1]
 
@@ -420,6 +423,7 @@ class Converter
 #       when 'Ccedil' then '{\\c C}'
       else
         @seal.err << "Unknown entity #{entity} in #{@seal.current_input}. Ignored.\n"
+        return ''
       end
     end
   end
