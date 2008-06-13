@@ -12,6 +12,20 @@ rescue LoadError
   exit( 1 )
 end
 
+if not Hpricot::Elem.method_defined?( :inner_text )
+  # Hpricot 0.4, which is included in the One-Click installler for
+  # Windows, doesn't seem to have inner_text. Code taken from
+  # http://merb.devjavu.com/browser/apps/merki/trunk/framework/merb/test/hpricot.rb?rev=939
+  class Hpricot::Elem
+    # courtesy of 'thomas' from the comments
+    # of _whys blog - get in touch if you want a better credit!
+    def inner_text
+      self.children.collect do |child|
+        child.is_a?(Hpricot::Text) ? child.content : ((child.respond_to?("inner_text") && child.inner_text) || "")
+      end.join.strip
+    end
+  end
+end
 
 class Converter
 
@@ -63,9 +77,10 @@ class Converter
         when 'hr'
           @out << "\n\\bobrule\n"
         when 'h1'
-          if child.attributes[ 'class' ] == 'songtitle'
+          if child.classes.include?( 'songtitle' )
             # We assume this <h1> contains no further elements
             child.each_child { |c| raise Converter::Error if c.elem? }
+            #puts child.methods.sort
             @song_title = child.inner_text
             simple = @song_title.downcase.gsub( /\\?[#&~]|\\ss/, '' )
             @out << "\\songlbl{" << @song_title.gsub( '!', "\\textexclaim{}" ) \
@@ -76,7 +91,7 @@ class Converter
             @out << '}'
           end
         when 'h2'
-          if child.attributes[ 'class' ] == 'songversion'
+          if child.classes.include?( 'songversion' )
             @out << "\\songversion{"
           else
             @out << "\\subsection*{"
@@ -401,7 +416,7 @@ class Converter
 #       when 'Ocirc' then '\\^O'
 #       when 'Ograve' then '\\`O'
 #       when 'Oacute' then '\\\'O'
-#       when 'Ouml' then '\\"O'
+       when 'Ouml' then '\\"O'
 #       when 'Ucirc' then '\\^U'
 #       when 'Ugrave' then '\\`U'
 #       when 'Uacute' then '\\\'U'
