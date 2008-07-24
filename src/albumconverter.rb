@@ -1,7 +1,5 @@
 
-
 require 'src/converter'
-require 'src/albumtitles'
 
 class AlbumConverter
 
@@ -14,6 +12,36 @@ class AlbumConverter
     @title  = ""
     @converter = Converter.new( seal )
     @converted_titles = {}
+  end
+
+  def start_index( album )
+    latex_title, @title, release, number = @seal.albumtitles[album]
+    if not number.nil?
+      @number = number
+    end
+    simple = @title.upcase.gsub( "\\&", '' )
+    return <<EOS
+\\def\\thesong{}
+\\cleardoublepage
+\\def\\thealbum{#{@title}}
+\\thispagestyle{album}
+\\phantomsection
+\\pdfbookmark{#{@number} #{@title}}{album#{@number}}
+\\label{album:#{@number}}
+\\label{album:#{simple}}
+
+\\begin{flushright}
+\\scalebox{6}{\\Huge\\scshape #{@number.to_s.downcase}}
+
+\\vspace{5ex}
+#{latex_title}
+
+{\\footnotesize #{release}}
+
+\\vspace{10ex}
+
+\\begin{ctabular}[r]{r>{\\raggedright}p{20em}}
+EOS
   end
 
   def convert( album_name, src, dest, songs )

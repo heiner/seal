@@ -25,13 +25,15 @@ class Seal
     end
   end
 
-  attr_reader   :options, :stats, :out, :err
+  attr_reader   :options, :stats, :out, :err, :albumtitles
   attr_accessor :current_input
 
   def initialize( options )
     @options = options
     @data   = YAML.load_file( File::join( RESIDENCE, 'data', 'songs.yaml' ) )
     @albums = YAML.load_file( File::join( RESIDENCE, 'data', 'albums.yaml' ) )
+    @albumtitles =
+         YAML.load_file( File::join( RESIDENCE, 'data', 'albumtitles.yaml' ) )
     @stats = Stats.new
     @albumconverter = AlbumConverter.new( self )
 
