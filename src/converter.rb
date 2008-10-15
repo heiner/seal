@@ -42,7 +42,8 @@ class Converter
   end
 
   def convert( in_stream, out_stream )
-    @seal.current_input = in_stream.path
+    @seal.current_input_path = in_stream.path
+    @seal.current_input = File.basename( @seal.current_input_path )
     
     data = in_stream.read
     @out = out_stream
@@ -102,6 +103,11 @@ class Converter
           @out << "\\subsubsection*{"
           text( child )
           @out << '}'
+        when 'a' # anchor for internal links
+          if child.has_attribute?( 'name' )
+            name = child.attributes[ 'name' ]
+            @out << "\\label{anchor:#{@seal.current_input}:#{name}}"
+          end
         when 'ul'
           @out << "\\begin{itemize}"
           child.each_child do |item|
@@ -119,12 +125,12 @@ class Converter
           text( child )
           @out << "\\end{quote}"
         else
-          raise Converter::Error, "unknown tag <#{child.name}>"
+          raise Converter::Error, "unknown tag <#{child.name}> in #{@seal.current_input_path}"
         end
         #elsif child.text?
         #  text = child.to_html
         #  if text =~ /\S/
-        #    puts "Text in <body> tag in #{@seal.current_input}: #{text.dump}"
+        #    puts "Text in <body> tag in #{@seal.current_input_path}: #{text.dump}"
         #  end
       end # ignore comments
     end
@@ -437,7 +443,7 @@ class Converter
 #       when 'ccedil' then '{\\c c}'
 #       when 'Ccedil' then '{\\c C}'
       else
-        @seal.err << "Unknown entity #{entity} in #{@seal.current_input}. Ignored.\n"
+        @seal.err << "Unknown entity #{entity} in #{@seal.current_input_path}. Ignored.\n"
         return ''
       end
     end

@@ -26,7 +26,7 @@ class Seal
   end
 
   attr_reader   :options, :stats, :out, :err, :albumtitles
-  attr_accessor :current_input
+  attr_accessor :current_input_path, :current_input
 
   def initialize( options )
     @options = options
