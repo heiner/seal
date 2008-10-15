@@ -10,24 +10,8 @@ class Seal
   def tex
     Dir::chdir( @options[ :directory ] )
 
-    tex_cmds = []
-    if not @options.has_key?( :ps )
-      if RUBY_PLATFORM =~ /mswin/i
-        tex_cmd = "pdflatex mbpbook"
-      else
-        @options[ :ps ] = true
-        tex_cmd = "latex mbpbook"
-      end
-    else
-      if @options[ :ps ]
-        tex_cmd = "latex mbpbook"
-      else
-        tex_cmd = "pdflatex mbpbook"
-      end
-    end
-
+    tex_cmd = "pdflatex mbpbook"
     makeindex_cmd = "makeindex mbpbook"
-    dvips_cmd = "dvips mbpbook -o"
 
     run_command( tex_cmd )
     if File::stat( "mbpbook.idx" ).zero?
@@ -39,10 +23,6 @@ class Seal
     end
     run_command( makeindex_cmd )
     run_command( tex_cmd )
-    
-    if @options[ :ps ]
-      run_command( dvips_cmd )
-    end
   end
 
   def run_command( command )
@@ -78,12 +58,6 @@ EOS
 
     opts.version = "from commit #{Seal::COMMIT}"
 
-    opts.on( "--pdf", "Create PDF output (default on MS Windows)" ) do
-      options[ :ps ] = false
-    end
-    opts.on( "--postscript", "Create PostScript output" ) do
-      options[ :ps ] = true
-    end
     opts.on( "-v", "--[no-]verbose", "Write out what is going on" ) do |v|
       options[ :quiet ] = !v
     end
