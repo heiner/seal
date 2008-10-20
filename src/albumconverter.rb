@@ -81,7 +81,9 @@ EOS
         end
 
         basename = song[0...-4] # without extension, but with path
-        inputs << File.join( File.basename( dest ), basename ) if input
+        if input
+          inputs << File.join( File.basename( dest ), basename )
+        end
         
         if @converted_titles.has_key?( basename )
           @seal.progress( 'r' )

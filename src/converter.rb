@@ -251,7 +251,7 @@ class Converter
     @out << "\\begin{alltt}"
     text = read_text( element )
     text.gsub!( '[', "{\\relax}[" )
-    text.gsub!( "\t", '~'*8 )
+    text.gsub!( "\t", ' '*8 )
     @out << text << "\\end{alltt}"
   end
 
