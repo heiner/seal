@@ -65,6 +65,13 @@ EOS
       options[ :quiet ] = q
     end
 
+    #opts.on( "--pdf" ) do
+    #  exit
+    #end
+    #opts.on( "--postscript" ) do
+    #  exit
+    #end
+
     opts.on_tail # separator
     opts.on_tail( "-h", "--help", "Show this message" ) do
       puts opts
@@ -78,6 +85,16 @@ EOS
 
   begin
     opts.parse!( ARGV )
+  rescue OptionParser::InvalidOption => error
+    if error.args.include?( '--pdf' )
+      puts "The --pdf option is now obsolete"
+    elsif error.args.include?( '--postscript' )
+      puts "The --postscript option is no longer supported"
+      exit( 2 )
+    else
+      puts error
+      exit( 1 )
+    end
   rescue OptionParser::ParseError => error
     puts error
     exit( 1 )

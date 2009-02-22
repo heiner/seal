@@ -193,8 +193,10 @@ class Converter
           url = File.join( 'graphics', File.basename( image ) )
           url = url[0...url.rindex('.')]
           @out << "\\input{#{url}}"
+        when 'script' # we totally ignore this one
         else
-          raise Converter::Error, "unknown tag <#{child.name}>"
+          raise Converter::Error, "unknown tag <#{child.name}> in " \
+                                  "#{@seal.current_input_path}"
         end
 
       elsif child.text?
