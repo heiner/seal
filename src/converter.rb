@@ -58,10 +58,18 @@ class Converter
 
     doc = Hpricot( data )
 
-    if not block_given?
-      body( doc.at( "body" ) )
-    else
-      yield doc
+    begin
+      if not block_given?
+        body( doc.at( "body" ) )
+      else
+        yield doc
+      end
+    rescue Converter::Error => e
+      if $DEBUG
+        raise
+      else
+        @seal.err << e
+      end
     end
   end
 
@@ -106,6 +114,12 @@ class Converter
         when 'a' # anchor for internal links
           if child.has_attribute?( 'name' )
             name = child.attributes[ 'name' ]
+            if name[1] == ?#
+              name.slice!( 0 ) # Remove the \ we inserted there
+              @seal.err << "\n#{@seal.current_input_path}: illegal anchor " \
+                           "name \"#{name}\" (shouldn't start with an #)"
+              name.slice!( 0 )
+            end
             @out << "\\label{anchor:#{@seal.current_input}:#{name}}"
           end
         when 'ul'
@@ -124,6 +138,10 @@ class Converter
           @out << "\\begin{quote}"
           text( child )
           @out << "\\end{quote}"
+        when 'img'
+          image = child.attributes['src']
+          @seal.err << "\nIgnored image at #{image}"
+        when 'script' # we totally ignore this one
         else
           raise Converter::Error, "unknown tag <#{child.name}> in #{@seal.current_input_path}"
         end
@@ -372,8 +390,8 @@ class Converter
       when 'rdquo', '#8221' then "''"
       when 'ndash', '#8211' then '--'
       when 'nbsp' then '~'
-      when 'lsquo' then '`'
-      when 'rsquo', '#146' then "'"
+      when 'lsquo',  '#8216' then '`'
+      when 'rsquo', '#146', '#8217' then "'"
       when 'ntilde' then '\\~n'
       when 'uuml' then '\\"u'
       when 'eacute' then '\\\'e'
