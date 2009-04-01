@@ -1,0 +1,329 @@
+--- 
+01_bobdylan: 
+- |
+  \scalebox{1.5}{\Huge Bob Dylan}
+
+- Bob Dylan
+- Recorded November 20 and 22, 1961 --- Released March 19, 1962
+02_freewheelin: 
+- |
+  \scalebox{1.5}{\Huge The Freewheelin'}
+  
+  \vspace{1ex}
+  \scalebox{1.5}{\Huge Bob Dylan}
+
+- The Freewheelin' Bob Dylan
+- "Recorded: April 24, 1962--April 24, 1963 --- Released: May 27, 1963"
+03_times: 
+- |
+  \scalebox{1.5}{\Huge The Times}
+  
+  \vspace{1ex}
+  \scalebox{1.5}{\Huge They Are A-Changin'}
+
+- The Times The Are A-Changin'
+- Recorded August--October 1963 --- Released January 13, 1964
+04_anotherside: 
+- |
+  \scalebox{1.5}{\Huge Another Side Of Bob Dylan}
+
+- Another Side Of Bob Dylan
+- "Recorded: June 9 1964 --- Released: August 8, 1964"
+05_biabh: 
+- |
+  \scalebox{1.5}{\Huge Bringing It All Back Home}
+
+- Bringing It All Back Home
+- Recorded January 13--15, 1965 --- Released March 22, 1965
+06_hwy61: 
+- |
+  \scalebox{1.5}{\Huge Highway 61 Revisited}
+
+- Highway 61 Revisited
+- Recorded May 12--August 4, 1965 --- Released August 30, 1965
+07_bob: 
+- |
+  \scalebox{1.5}{\Huge Blonde on Blonde}
+
+- Blonde on Blonde
+- Recorded October 5, 1965--March 10, 1966 --- Released May 16, 1966
+08_jwh: 
+- |
+  \scalebox{1.5}{\Huge John Wesley Harding}
+
+- John Wesley Harding
+- "Recorded: October/November 1967 --- Released: December 27, 1967"
+09_nashville: 
+- |
+  \scalebox{1.5}{\Huge Nashville Skyline}
+
+- Nashville Skyline
+- Recorded February 1969 --- Released April 9, 1969
+10_selfportrait: 
+- |
+  \scalebox{1.5}{\Huge Self Portrait}
+
+- Self Portrait
+- Recorded April 1969--March 1970 ---   Released June 8, 1970
+11_newmorning: 
+- |
+  \scalebox{1.5}{\Huge New Morning}
+
+- New Morning
+- Recorded March--June 1970 --- Released October 21, 1970
+12_billy: 
+- |
+  \scalebox{1.5}{\Huge Pat Garrett \& Billy The Kid}
+
+- Pat Garrett \& Billy The Kid
+- Recorded January--February 1973 --- Released Jul 13, 1973\\(The movie was released in May 1973)
+13_dylan: 
+- |
+  \scalebox{1.5}{\Huge Dylan (A fool such as I)}
+
+- Dylan (A fool such as I)
+- Released November 16, 1973
+14_planetwaves: 
+- |
+  \scalebox{1.5}{\Huge Planet Waves}
+
+- Planet Waves
+- Recorded November 1973 --- Released January 17, 1974
+15_beforetheflood: 
+- |
+  \scalebox{1.5}{\Huge Before the Flood}
+
+- Before the Flood
+- "Recorded live with The Band January 30 and February 13--14, 1974  --- Released: Jun 20, 1974"
+16_bott: 
+- |
+  \scalebox{1.5}{\Huge Blood on the Tracks}
+
+- Blood on the Tracks
+- Recorded September/December 1974 --- Released January 20, 1975
+17_basement: 
+- |
+  \scalebox{1.5}{\Huge The Basement Tapes}
+
+- The Basement Tapes
+- Recorded June--November, 1967 --- Released June 26, 1975
+18_desire: 
+- |
+  \scalebox{1.5}{\Huge Desire}
+
+- Desire
+- Recorded July 1975 --- Released January 16 1976
+19_hardrain: 
+- |
+  \scalebox{1.5}{\Huge Hard Rain}
+
+- Hard Rain
+- Recorded live at the shows in Fort Worth, May 16 and Fort Collins, May 23.  --- Released September 1, 1976
+20_streetlegal: 
+- |
+  \scalebox{1.5}{\Huge Street Legal}
+
+- Street Legal
+- Recorded April 1978 --- Released June 15, 1978
+21_budokan: 
+- |
+  \scalebox{1.5}{\Huge At Budokan}
+
+- At Budokan
+- Recorded live at Nippon Budokan, Tokyo February 28 \& March 1, 1978 --- Released April 23 1979
+22_slowtrain: 
+- |
+  \scalebox{1.5}{\Huge Slow Train Coming}
+
+- Slow Train Coming
+- "Recorded April--May 1979 --- Released: August 18, 1979"
+23_saved: 
+- |
+  \scalebox{1.5}{\Huge Saved}
+
+- Saved
+- Recorded February 11--15 1980 --- Released June 20 1980
+24_shotoflove: 
+- |
+  \scalebox{1.5}{\Huge Shot of Love}
+
+- Shot of Love
+- Recorded April--May, 1981 --- Released August 12, 1981
+25_infidels: 
+- |
+  \scalebox{1.5}{\Huge Infidels}
+
+- Infidels
+- Recorded April--May, 1983 --- Released October 27, 1983
+26_reallive: 
+- |
+  \scalebox{1.5}{\Huge Real Live}
+
+- Real Live
+- "Recorded live July 5--8, 1984 --- Released: November 29, 1984"
+27_empire: 
+- |
+  \scalebox{1.5}{\Huge Empire Burlesque}
+
+- Empire Burlesque
+- Recorded July 1984--March 1985 --- Released June 8, 1995
+28_biograph: 
+- |
+  \scalebox{1.5}{\Huge Biograph}
+
+- Biograph
+- "Released: November 7, 1985"
+29_knocked: 
+- |
+  \scalebox{1.5}{\Huge Knocked Out Loaded}
+
+- Knocked Out Loaded
+- Recorded Jul 1984--May 1986 --- Released Jul 14, 1986
+30_down: 
+- |
+  \scalebox{1.5}{\Huge Down In The Groove}
+
+- Down In The Groove
+- "Recorded: August 1986 to May 1987 --- Released: May 31, 1988"
+31_ohmercy: 
+- |
+  \scalebox{1.5}{\Huge Oh Mercy}
+
+- Oh Mercy
+- Recorded March 1989 --- Released September 22 1989
+33_utrs: 
+- |
+  \scalebox{1.5}{\Huge Under The Red Sky}
+
+- Under The Red Sky
+- Recorded January--March 1990 --- Released September 11, 1990
+34_bootleg: 
+- |
+  \scalebox{1.5}{\Huge The Bootleg Series 1-3}
+
+- The Bootleg Series 1-3
+- Released March 26, 1991
+35_gaibty: 
+- |
+  \scalebox{1.5}{\Huge Good As I Been To You}
+
+- Good As I Been To You
+- Recorded June--July 1992 --- Released November 3, 1992
+36_wgw: 
+- |
+  \scalebox{1.5}{\Huge World Gone Wrong}
+
+- World Gone Wrong
+- Recorded May 1993 --- Released October 26, 1993
+37_unplugged: 
+- |
+  \scalebox{1.5}{\Huge Unplugged}
+
+- Unplugged
+- Recorded November 17--18, 1994 --- Released May 2, 1995
+38_toom: 
+- |
+  \scalebox{1.5}{\Huge Time out of Mind}
+
+- Time out of Mind
+- Released September 30, 1997
+39_rah: 
+- |
+  {\Large Bootleg Series vol. 4: Live 1966}
+  
+  \vspace{1ex}
+  {\Huge The ``Royal Albert Hall'' Concert}
+
+- Live 1966
+- Recorded May 17, 1966 in Manchester Free TraDecember Hall.  --- Released 1998
+41_lat: 
+- |
+  \scalebox{1.5}{\Huge ``Love And Theft''}
+
+- ``Love And Theft''
+- Recorded Spring 2001 --- Released September 11, 2001
+42_bs5: 
+- |
+  {\Large Bootleg Series vol. 5: Live 1975}
+  
+  \vspace{1ex}
+  {\Huge The Rolling Thunder Revue}
+
+- Live 1975
+- Recorded November--December 1975 --- Released November 26, 2002
+43_bs6: 
+- |
+  {\Large Bootleg Series vol. 6: Live 1964}
+  
+  \vspace{1ex}
+  {\Huge Concert at Philharmonic Hall}
+
+- Live 1964
+- Recorded October 31, 1964 at Philharmonic Hall, New York City --- Released March 30, 2004
+44_bs7_ndh: 
+- |
+  {\Large Bootleg Series vol. 7}
+  
+  \vspace{1ex}
+  {\Huge No Direction Home: The Soundtrack}
+
+- No Direction Home
+- Released September  2005
+45_modern: 
+- |
+  \scalebox{1.5}{\Huge Modern Times}
+
+- Modern Times
+- Recorded ? --- \\Released August 29, 2006
+46_bs8: 
+- |
+  {\Large Bootleg Series vol. 8}
+  
+  \vspace{1ex}
+  {\Huge Tell Tale Signs}
+
+- Tell Tale Signs
+- Released October 7, 2008
+00_misc#early: 
+- |
+  \scalebox{1.5}{\Huge Early Acoustic Bob}
+
+- Early Acoustic Bob
+- Miscellaneous songs from 1960 to 1965
+- A
+00_misc#electric: 
+- |
+  \scalebox{1.5}{\Huge (More or less) Electric Bob}
+
+- (More or less) Electric Bob
+- Miscellaneous songs from 1965 to 1975
+00_misc#rtr: 
+- |
+  \scalebox{1.5}{\Huge The Rolling Thunder Revue}
+
+- Rolling Thunder Revue
+- Lasting from 1975 to 1976
+00_misc#1978: 
+- |
+  \scalebox{1.5}{\Huge 1978 World Tour}
+
+- 1978 World Tour
+- Lasting from February to December 1978
+00_misc#gospel: 
+- |
+  \scalebox{1.5}{\Huge Gospel period}
+
+- Gospel period
+- From 1979 to 1981
+00_misc#outtakes: 
+- |
+  \scalebox{1.5}{\Huge Studio outtakes, soundtracks etc.}
+
+- Studio outtakes, soundtracks etc.
+- 1978 -- present
+00_misc#live: 
+- |
+  \scalebox{1.5}{\Huge Live covers}
+
+- Live covers
+- 1984 -- present
