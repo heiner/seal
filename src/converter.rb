@@ -132,6 +132,16 @@ class Converter
             end # ignore text and comments
           end
           @out << "\\end{itemize}"
+	when 'ol'
+	  @out << "\\begin{enumerate}"
+          child.each_child do |item|
+            if item.elem?
+              raise Converter::Error if item.name != 'li'
+              @out << "\\item "
+              text( item )
+            end # ignore text and comments
+          end
+          @out << "\\end{enumerate}"
         when 'div'
           body( child )
         when 'blockquote'

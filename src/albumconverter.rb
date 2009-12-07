@@ -109,7 +109,11 @@ EOS
       index_file << "\\end{ctabular}\n\\end{flushright}\n\n"
 
       # Convert the intro (if any)
-      open( File.join( src, 'index.htm' ) ) do |ifile|
+      ifilename = File.join( src, 'index.htm' )
+      if not File.exists?( ifilename )
+	ifilename += 'l'
+      end
+      open( ifilename ) do |ifile|
         @converter.convert( ifile, index_file ) do |doc|
           # title = doc.at( "html/head/title" ).inner_html
 
