@@ -248,8 +248,14 @@ class Converter
       pre_misc( element )
     else
       if classes[1]
-        @out << "\\begin{#{classes[1]}}"
-        extra = "\\end{#{classes[1]}}"
+	case classes[1]
+	when 'quote', 'refrain', 'spoken',
+	    'bridge', 'bridge2', 'verse', 'chorus'
+	  @out << "\\begin{#{classes[1]}}"
+	  extra = "\\end{#{classes[1]}}"
+	else
+	  raise Converter::Error, "unknown secondary pre CSS class #{classes[0]}"
+	end
       end
 
       case classes[0]
@@ -261,7 +267,7 @@ class Converter
         @out << "\\end{pre}\n\\end{#{classes[0]}}"
       when 'tab'
         pre_tab( element )
-      when 'chords'
+      when 'chords', 'crd', 'chorus'
         pre_misc( element )
       when 'quote'
         @out << "\\begin{quote}"
