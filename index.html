@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Linux/x86 (vers 6 November 2007), see www.w3.org" />
+  <meta name="keywords" content=
+  "Bob Dylan, Dylan, guitar, harmonica, harp, songbook, song, songs, lyrics, TeX, chords, LaTeX, dylanchords.com, dylanchords, dylanchords.info, Seal, seal, beauty, book, typography, learn, learning, Eyolf, Heiner" />
+  <link rel="stylesheet" href="../style.css" type="text/css" />
+  <link rel="stylesheet" href="seal-style.css" type="text/css" />
+
+  <title>Seal. The Cadillac of Bob Dylan song books.</title>
+</head>
+
+<body>
+  <blockquote class="right">
+    Makes you wanna stop and read a book.
+  </blockquote>
+
+  <h1><i><span class="maroon">Seal</span>.</i> The <i>Cadillac</i>
+  of Bob Dylan song books.</h1>
+
+  <div style="text-align:center">
+    <a href="#about">About</a> &middot; <a href=
+    "#download">Download</a> &middot; <a href="#usage">Usage</a>
+    &middot; <a href="#copyright">Copyright</a> &middot; <a href=
+    "#thanks">Thanks</a>
+  </div>
+
+  <h2>News</h2>
+
+  <ul>
+    <li><i class="figure">12 December 2009.</i>
+      <a href="snapshots/seal-ccc9840.zip">New version of Seal</a> that supports <a href="http://dylanchords.info/48_cith/index.html">Christmas in the Heart</a>.
+      Thanks to Eyolf for tabbing this so fast, and a merry little Christmas to all of you!
+    </li>
+    <li><i class="figure">7 December 2009.</i>
+      <a href="snapshots/seal-2d4fb2d.zip">New version of Seal</a>
+      that supports <a href="http://dylanchords.info/47_ttl/index.html">TTL</a>, finally.
+    </li>
+  </ul>
+  <hr />
+
+  <h2><a name="about" id="about"></a>About</h2>
+
+  <p>Seal fetches the chord and lyric files from dylanchords.com
+  <a href="#zipfiles">mirrors</a> and converts them to <span class=
+  "LaTeX">L<span class="A">a</span></span><span class=
+  "TeX">T<span class="E">e</span>X</span>, which then can be
+  <span class="TeX">T<span class="E">e</span>X</span>ed to become a
+  PostScript or PDF file, capable of printing.</p>
+
+  <p>Seal is not quite done yet, but its output is usable and some
+  parts of it even beautiful.</p>
+
+  <p>Anybody willing to help is welcome: Just send me suggestions,
+  bug reports, opinions, <i>etc.</i></p>
+
+  <p>There's also a new <a href="http://wiki.github.com/heiner/seal">Seal Wiki</a> over at <a href="http://github.com/heiner/seal/">Seal's GitHub page</a>.
+
+  <h2><a name="download" id="download"></a>Download</h2>
+
+  <p>Download <a href="download/seal-current.zip">the current
+  version</a> of Seal. You'll need <a href=
+  "http://www.ruby-lang.org">Ruby</a> and a <span class=
+  "TeX">T<span class="E">e</span>X</span> environment. (For the
+  later, I'd suggest <a href=
+  "http://www.tug.org/texlive/"><span class="TeX">T<span class=
+  "E">e</span>X</span> Live</a>. If you're a Windows user,
+  Mik<span class="TeX">T<span class="E">e</span>X</span> might be
+  another option, see Eyolf &Oslash;strem's <a href=
+  "http://www.dylanchords.com/seal-installation.htm">Seal
+  Instructions for Windows users</a>.)</p>
+
+  <p><a name="zipfiles" id="zipfiles"></a>You'll also need a recent
+  <tt>chords.zip</tt> file, which you can get from</p><span class=
+  "block"><a href=
+  "http://dylanchords.info/chords.zip">http://dylanchords.info/chords.zip</a></span>
+
+  <p>There are also WWW mirrors of dylanchords.com: <a href=
+  "http://dylanchords.info/">http://dylanchords.info</a> and
+  <a href=
+  "http://heiner.github.com/dylanchords/">http://heiner.github.com/dylanchords/</a>.</p>
+
+  <p>There is also a <a href="http://git.or.cz/">Git</a> archive of
+  the Dylanchords file at <a href=
+  "http://repo.or.cz/w/dc-seal.git">http://repo.or.cz/w/dc-seal.git</a>.
+  If you've installed Git, just type at your prompt</p>
+  <pre>
+$ git clone git://repo.or.cz/dc-seal.git
+</pre>
+
+  <p>Then, whenever the archive got updated, you can use the
+  command <tt>git pull</tt> to update your copy.</p>
+
+  <p><small>There is also a Git archive of the Seal program
+  itself:</small></p>
+  <pre>
+<small>$ git clone http://www.math.tu-dresden.de/~kuettler/git/seal.git
+</small>
+</pre>
+
+  <h2><a name="usage" id="usage"></a>Usage</h2>
+
+  <p>On my computer (running <a href="http://www.debian.org">Debian
+  GNU/Linux</a>), I use Seal thus:</p>
+  <pre>
+$ cd seal/
+$ ./seal-convert /path/to/dylanchords
+$ ./seal-tex
+</pre>
+
+  <p>This generates a file called <tt>book/mbpbook.pdf</tt>.</p>
+
+  <p>The <tt>seal-convert</tt> program also has some command-line
+  options, run <tt>seal-convert -h</tt> to see a list of them</p>
+
+  <p>If you are using Microsoft Windows, <a href=
+  "http://dylanchords.info/seal-installation.htm">Eyolf
+  &Oslash;strem's Seal HOWTO</a> could be interesting for you. (Be
+  aware, though, that the information there is not 100% up to date.
+  It should be helpful anyway.)</p>
+
+  <p><i>A note for Mac users:</i> If you see errors like ``<tt>!
+  LaTeX Error: There's no line here to end.</tt>'', it could be
+  that unziping messed up the end-of-line bytes. Try <tt>unzip
+  -a</tt>. (Thanks to Axel Kielhorn.)</p>
+
+  <h2><a name="copyright" id="copyright"></a>Copyright</h2>
+
+  <p>Seal is <i>free software</i>, licensed under the revised BSD
+  license (<a href=
+  "http://techbase.kde.org/Policies/Licensing_Policy">KDE-style</a>).
+  This means I have no intentions to stop you to use, distribute,
+  change, or sell this software. Note, however, that you do so
+  <em>at your own risk.</em></p>
+
+  <h2><a name="thanks" id="thanks"></a>Thanks</h2>
+
+  <p>A list of people I'm obliged to thank, in no particular
+  order:</p>
+
+  <ul>
+    <li><em class="blue serif">Donald Knuth</em>, for creating
+    <span class="TeX">T<span class="E">e</span>X</span>,</li>
+
+    <li><em class="blue serif">Bob Dylan</em>, for being the
+    greatest living artist and writing hundreds of great
+    songs,</li>
+
+    <li><em class="blue serif">Eyolf &Oslash;strem</em>, for
+    tabbing them: &gt;1500 pages of output!</li>
+  </ul>
+  <hr />
+
+  <div style="text-align:center;">
+    <small><a href="../">Heinrich K&uuml;ttler</a>
+    &lsaquo;heinrich|<i>dot</i><!--
+    &#74;&#117;&#115;&#116;&#32;&#116;&#111;&#32;&#99;&#111;&#110;&#102;
+    &#117;&#115;&#101;&#32;&#121;&#111;&#117;&#44;&#32;&#98;&#111;&#116;&#33;
+    -->|kuettler|<i>at<!--Symmetry is overrated
+    --></i>|gmail|<i>dot</i>|com&rsaquo; &middot; $Date$ &middot;
+<a href="http://validator.w3.org/check?uri=referer">W3C XHTML
+1.0</a></small>
+  </div>
+</body>
+</html>
