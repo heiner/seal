@@ -51,10 +51,10 @@ class Seal
           contents << [ nil, nil ]
           next
         end
-      
+
         songs = @data[ album ]
         next if songs.empty?
-      
+
         dir, ext = album.split( "#" )
         ext = '_' + ext if not ext.nil?
 
@@ -102,7 +102,7 @@ Roadmaps for the Soul & \\emph{\\pageref{roadmaps}}&&&\\tabularnewline
 Harp Keys & \\emph{\\pageref{harpkeys}}&&&\\tabularnewline
 &&&&\\tabularnewline
 EOS
-  
+
       half = contents.size.quo(2).ceil
       0.upto( half-1 ) do |i|
         number, title = contents[i]
@@ -113,7 +113,7 @@ EOS
           printnumber = number
         end
         toc << <<EOS
-\\textbf{#{printnumber}}$\\quad$#{title} & \\emph{\\pageref{album:#{number}}} & & 
+\\textbf{#{printnumber}}$\\quad$#{title} & \\emph{\\pageref{album:#{number}}} & &
 EOS
 
         if i + half < contents.size
@@ -148,9 +148,9 @@ EOS
 
   def setup
     dest = @options[ :destination ]
-    
+
     if File::exist?( dest )
-      if @options[ :force ] or ask( "Directory `#{dest}' exists. Overwrite?" )
+      if @options[ :force ] or ask( "Directory `#{dest}' exists. Overwrite?" ) #"
         rm_rf( Dir::glob( File::join( dest, "*[^~]" ) ) )
       else
         @err << "Abort.\n"
@@ -189,9 +189,9 @@ EOS
     if @options[ :config ].nil? or @options[ :config ].empty?
       @options[ :config ] = "\\openany"
     end
-    
+
     return unless @options[ :config ].respond_to?( :each )
-    
+
     open( File.join( dest, 'config.tex' ), "w" ) do |config|
       @options[ :config ].each do |option|
         config << option << "\n"
@@ -204,7 +204,7 @@ EOS
     # into dest
     Dir::glob( File::join( src, "*[^~]" ) ).each do |src_entry|
       dest_entry = File::join( dest, File::basename( src_entry ) )
-      
+
       if File::directory?( src_entry )
         mkdir dest_entry
         copy_dir( src_entry, dest_entry )
@@ -244,7 +244,7 @@ end
 if __FILE__ == $0
   require 'optparse'
   require 'src/about'
-  
+
   options = { :config => '\\openany' }
   opts = OptionParser.new do |opts|
     opts.banner = <<EOS

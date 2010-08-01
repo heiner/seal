@@ -33,10 +33,10 @@ class Converter
   end
 
   attr_reader :song_title
-  
+
   def initialize( seal )
     @seal = seal
-    
+
     @out = nil
     @song_title = nil
   end
@@ -44,7 +44,7 @@ class Converter
   def convert( in_stream, out_stream )
     @seal.current_input_path = in_stream.path
     @seal.current_input = File.basename( @seal.current_input_path )
-    
+
     data = in_stream.read
     @out = out_stream
 
@@ -57,9 +57,16 @@ class Converter
     data.gsub!( /([&#])/, '\\\\\1' )
 
     doc = Hpricot( data )
+#     doc.search("[@class]").each do |tag|
+#       if tag.classes.length > 1
+#         puts "In #{@seal.current_input}: <#{tag.name}> " \
+#              "has classes=[#{tag.classes.join(', ')}]"
+#       end
+#     end
 
     begin
       if not block_given?
+        #puts doc.inner_text
         body( doc.at( "body" ) )
       else
         yield doc
@@ -153,7 +160,8 @@ class Converter
           @seal.err << "\nIgnored image at #{image}"
         when 'script' # we totally ignore this one
         else
-          raise Converter::Error, "unknown tag <#{child.name}> in #{@seal.current_input_path}"
+          # raise Converter::Error, "unknown tag <#{child.name}> in #{@seal.current_input_path}"
+          @seal.err << "unknown tag <#{child.name}> in #{@seal.current_input_path}"
         end
         #elsif child.text?
         #  text = child.to_html
@@ -223,8 +231,9 @@ class Converter
           @out << "\\input{#{url}}"
         when 'script' # we totally ignore this one
         else
-          raise Converter::Error, "unknown tag <#{child.name}> in " \
-                                  "#{@seal.current_input_path}"
+          #raise Converter::Error, "unknown tag <#{child.name}> in " \
+          #                        "#{@seal.current_input_path}"
+          @seal.err << "unknown tag <#{child.name}> in #{@seal.current_input_path}"
         end
 
       elsif child.text?
@@ -254,7 +263,8 @@ class Converter
 	  @out << "\\begin{#{classes[1]}}"
 	  extra = "\\end{#{classes[1]}}"
 	else
-	  raise Converter::Error, "unknown secondary pre CSS class #{classes[0]}"
+	  #raise Converter::Error, "unknown secondary pre CSS class #{classes[0]}"
+          @seal.err << "unknown secondary pre CSS class #{classes[0]}"
 	end
       end
 
@@ -267,14 +277,16 @@ class Converter
         @out << "\\end{pre}\n\\end{#{classes[0]}}"
       when 'tab'
         pre_tab( element )
-      when 'chords', 'crd', 'chorus'
+      when 'chords', 'crd', 'chorus', 'chordcharts'
         pre_misc( element )
       when 'quote'
         @out << "\\begin{quote}"
         pre_misc( element )
         @out << "\\end{quote}"
       else
-        raise Converter::Error, "unknown pre CSS class #{classes[0]}"
+        #raise Converter::Error, "unknown pre CSS class #{classes[0]}"
+        @seal.err << "unknown pre CSS class #{classes[0]}"
+        pre_misc( element )
       end
 
       @out << extra
@@ -282,7 +294,7 @@ class Converter
   end
 
   protected
-  
+
   def pre_misc( element )
     @out << "\\begin{alltt}"
     text = read_text( element )
@@ -294,7 +306,7 @@ class Converter
   CHORDLINE_REGEX =
     %r{ ^                      # Beginning
         [~.]*                  # any number of spaces or dots
-        (?:                    # optionally: 
+        (?:                    # optionally:
           (?: \|[:*]? | \[ )   # "|" or "|:" or "|*" or "["
           [~.]*                # followed by any number of spaces or dots
         )?
