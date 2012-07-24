@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 # -*- ruby -*-
 
+$: << File.dirname(__FILE__)
+
 class Seal
 
   def initialize( options )
