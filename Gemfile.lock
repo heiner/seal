@@ -1,0 +1,13 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    hpricot (0.8.6)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  hpricot
+
+BUNDLED WITH
+   1.10.4
